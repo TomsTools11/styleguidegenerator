@@ -14,8 +14,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate PDF buffer
+    // @ts-expect-error - StyleGuideDocument returns a valid Document but types are incompatible
     const pdfBuffer = await renderToBuffer(
-      React.createElement(StyleGuideDocument, { data }) as React.ReactElement
+      React.createElement(StyleGuideDocument, { data })
     );
 
     // Return the PDF as a downloadable file
