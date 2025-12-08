@@ -14,7 +14,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate PDF buffer
-    // @ts-expect-error - StyleGuideDocument returns a valid Document but types are incompatible
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - StyleGuideDocument returns valid Document, types may vary across environments
     const pdfBuffer = await renderToBuffer(
       React.createElement(StyleGuideDocument, { data })
     );
