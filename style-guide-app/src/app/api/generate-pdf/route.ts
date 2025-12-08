@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     // Generate PDF buffer
     const pdfBuffer = await renderToBuffer(
-      React.createElement(StyleGuideDocument, { data })
+      React.createElement(StyleGuideDocument, { data }) as React.ReactElement
     );
 
     // Return the PDF as a downloadable file
