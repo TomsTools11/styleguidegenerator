@@ -1,15 +1,8 @@
-import { StyleSheet, Font } from '@react-pdf/renderer';
+import { StyleSheet } from '@react-pdf/renderer';
 
-// Register fonts
-Font.register({
-  family: 'Inter',
-  fonts: [
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2', fontWeight: 400 },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiJ-Ek-_EeA.woff2', fontWeight: 500 },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ9hiJ-Ek-_EeA.woff2', fontWeight: 600 },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiJ-Ek-_EeA.woff2', fontWeight: 700 },
-  ],
-});
+// Use built-in Helvetica font to avoid network loading issues
+// Helvetica is available by default in @react-pdf/renderer
+const FONT_FAMILY = 'Helvetica';
 
 // Color palette matching the example PDF
 export const colors = {
@@ -44,7 +37,7 @@ export const colors = {
 export const styles = StyleSheet.create({
   // Page layout
   page: {
-    fontFamily: 'Inter',
+    fontFamily: FONT_FAMILY,
     fontSize: 11,
     color: colors.textPrimary,
     backgroundColor: colors.white,
@@ -54,7 +47,7 @@ export const styles = StyleSheet.create({
 
   // Cover page
   coverPage: {
-    fontFamily: 'Inter',
+    fontFamily: FONT_FAMILY,
     backgroundColor: colors.white,
     padding: 50,
     display: 'flex',
