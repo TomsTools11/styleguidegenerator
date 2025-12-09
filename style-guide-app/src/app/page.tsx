@@ -464,7 +464,7 @@ export default function Home() {
               <span className="text-[#A7A39A]">Style Guide Generator</span>
             </div>
             <p className="text-[#A7A39A] text-sm">
-              Built with precision by Tom Panos
+              Made with ❤️ by <a href="https://tom-panos.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Tom in Milwaukee, WI</a>
             </p>
           </div>
         </div>
