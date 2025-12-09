@@ -218,52 +218,103 @@ export default function Home() {
               {/* Mock PDF preview */}
               <div className="relative grid md:grid-cols-3 gap-6">
                 {/* Page 1 - Cover */}
-                <div className="bg-white rounded-lg shadow-xl p-6 aspect-[3/4] flex flex-col">
-                  <div className="text-[#021A2E] font-bold text-xl mb-2" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
+                <div className="bg-white rounded-lg shadow-xl p-5 aspect-[3/4] flex flex-col">
+                  <div className="text-[#021A2E] font-bold text-xl mb-1" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
                     YourSite.com
                   </div>
-                  <div className="text-gray-500 text-sm mb-6">Brand & Design Style Guide</div>
-                  <div className="flex gap-2 mt-auto">
-                    <div className="w-12 h-8 rounded bg-[#021A2E]" />
-                    <div className="w-12 h-8 rounded bg-[#014379]" />
-                    <div className="w-12 h-8 rounded bg-[#0D91FD]" />
-                    <div className="w-12 h-8 rounded bg-[#5DB5FE]" />
-                    <div className="w-12 h-8 rounded bg-[#C2E3FE]" />
+                  <div className="text-gray-500 text-sm mb-4">Brand & Design Style Guide</div>
+
+                  {/* Table of Contents */}
+                  <div className="flex-1">
+                    <div className="text-xs font-semibold text-gray-700 mb-2">Contents</div>
+                    <div className="space-y-1.5 text-xs text-gray-500">
+                      <div className="flex justify-between"><span>1. Brand Overview</span><span>3</span></div>
+                      <div className="flex justify-between"><span>2. Color Palette</span><span>5</span></div>
+                      <div className="flex justify-between"><span>3. Typography</span><span>8</span></div>
+                      <div className="flex justify-between"><span>4. UI Components</span><span>11</span></div>
+                      <div className="flex justify-between"><span>5. Accessibility</span><span>15</span></div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 mt-4">
+                    <div className="w-10 h-6 rounded bg-[#021A2E]" />
+                    <div className="w-10 h-6 rounded bg-[#014379]" />
+                    <div className="w-10 h-6 rounded bg-[#0D91FD]" />
+                    <div className="w-10 h-6 rounded bg-[#5DB5FE]" />
+                    <div className="w-10 h-6 rounded bg-[#C2E3FE]" />
                   </div>
                 </div>
 
                 {/* Page 2 - Colors */}
-                <div className="bg-white rounded-lg shadow-xl p-6 aspect-[3/4]">
-                  <div className="text-[#0D91FD] font-semibold text-lg mb-4" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
+                <div className="bg-white rounded-lg shadow-xl p-5 aspect-[3/4] flex flex-col">
+                  <div className="text-[#0D91FD] font-semibold text-base mb-3" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
                     2.2 Color Palette
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 flex-1">
                     {['Primary', 'Secondary', 'Accent', 'Text', 'Background'].map((role, i) => (
-                      <div key={role} className="flex items-center gap-3">
+                      <div key={role} className="flex items-center gap-2">
                         <div
-                          className="w-6 h-6 rounded"
+                          className="w-5 h-5 rounded"
                           style={{ backgroundColor: ['#021A2E', '#014379', '#0D91FD', '#374151', '#F9FAFB'][i] }}
                         />
-                        <span className="text-gray-700 text-sm">{role}</span>
-                        <span className="text-gray-400 text-xs ml-auto">
+                        <span className="text-gray-700 text-xs">{role}</span>
+                        <span className="text-gray-400 text-[10px] ml-auto">
                           {['#021A2E', '#014379', '#0D91FD', '#374151', '#F9FAFB'][i]}
                         </span>
                       </div>
                     ))}
                   </div>
+
+                  {/* Contrast Table */}
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <div className="text-[10px] font-semibold text-gray-600 mb-2">Contrast Ratios</div>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[9px]">
+                        <span className="text-gray-500">Primary / White</span>
+                        <span className="text-green-600 font-medium">12.5:1 AAA</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px]">
+                        <span className="text-gray-500">Accent / White</span>
+                        <span className="text-green-600 font-medium">4.6:1 AA</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px]">
+                        <span className="text-gray-500">Text / Background</span>
+                        <span className="text-green-600 font-medium">8.2:1 AAA</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Page 3 - Typography */}
-                <div className="bg-white rounded-lg shadow-xl p-6 aspect-[3/4]">
-                  <div className="text-[#0D91FD] font-semibold text-lg mb-4" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
+                <div className="bg-white rounded-lg shadow-xl p-5 aspect-[3/4] flex flex-col">
+                  <div className="text-[#0D91FD] font-semibold text-base mb-3" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
                     2.3 Typography
                   </div>
-                  <div className="space-y-3">
-                    <div className="text-2xl font-bold text-gray-800">Heading 1</div>
-                    <div className="text-xl font-semibold text-gray-700">Heading 2</div>
-                    <div className="text-lg font-medium text-gray-600">Heading 3</div>
-                    <div className="text-base text-gray-500">Body text looks like this, with good readability.</div>
-                    <div className="text-sm text-gray-400">Caption text for smaller details.</div>
+                  <div className="space-y-2 flex-1">
+                    <div className="text-lg font-bold text-gray-800">Heading 1</div>
+                    <div className="text-base font-semibold text-gray-700">Heading 2</div>
+                    <div className="text-sm font-medium text-gray-600">Heading 3</div>
+                    <div className="text-xs text-gray-500">Body text with good readability.</div>
+                    <div className="text-[10px] text-gray-400">Caption text for details.</div>
+                  </div>
+
+                  {/* Font Specs Table */}
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <div className="text-[10px] font-semibold text-gray-600 mb-2">Font Stack</div>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[9px]">
+                        <span className="text-gray-500">Primary</span>
+                        <span className="text-gray-700 font-medium">Inter</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px]">
+                        <span className="text-gray-500">Headings</span>
+                        <span className="text-gray-700 font-medium">Red Hat Display</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px]">
+                        <span className="text-gray-500">Monospace</span>
+                        <span className="text-gray-700 font-medium">JetBrains Mono</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -404,26 +455,26 @@ export default function Home() {
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#407EC9]/20 to-[#448361]/20 blur-3xl rounded-full" />
                 <div className="relative bg-[#191919] border border-[#444B4E] rounded-2xl p-8">
-                  <div className="aspect-[3/4] bg-white rounded-lg shadow-2xl p-5 overflow-hidden">
+                  <div className="aspect-[3/4] bg-white rounded-lg shadow-2xl p-4 overflow-hidden flex flex-col">
                     {/* Header */}
-                    <div className="border-b border-gray-200 pb-3 mb-3">
-                      <div className="text-xl font-bold text-[#021A2E]" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
+                    <div className="border-b border-gray-200 pb-2 mb-2">
+                      <div className="text-lg font-bold text-[#021A2E]" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
                         Brand Style Guide
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">Version 1.0 | Generated Today</div>
+                      <div className="text-[10px] text-gray-500 mt-0.5">Version 1.0 | Generated Today</div>
                     </div>
 
                     {/* Color Palette Section */}
-                    <div className="mb-4">
-                      <div className="text-xs font-semibold text-[#0D91FD] mb-2">Color Palette</div>
-                      <div className="flex gap-1.5 mb-2">
-                        <div className="w-7 h-7 rounded bg-[#021A2E]" />
-                        <div className="w-7 h-7 rounded bg-[#0D91FD]" />
-                        <div className="w-7 h-7 rounded bg-[#448361]" />
-                        <div className="w-7 h-7 rounded bg-[#D9730D]" />
-                        <div className="w-7 h-7 rounded bg-[#6B7280]" />
+                    <div className="mb-3">
+                      <div className="text-[10px] font-semibold text-[#0D91FD] mb-1.5">Color Palette</div>
+                      <div className="flex gap-1 mb-1">
+                        <div className="w-6 h-6 rounded bg-[#021A2E]" />
+                        <div className="w-6 h-6 rounded bg-[#0D91FD]" />
+                        <div className="w-6 h-6 rounded bg-[#448361]" />
+                        <div className="w-6 h-6 rounded bg-[#D9730D]" />
+                        <div className="w-6 h-6 rounded bg-[#6B7280]" />
                       </div>
-                      <div className="flex gap-3 text-[8px] text-gray-500">
+                      <div className="flex gap-2 text-[7px] text-gray-500">
                         <span>Primary</span>
                         <span>Accent</span>
                         <span>Success</span>
@@ -433,37 +484,70 @@ export default function Home() {
                     </div>
 
                     {/* Typography Section */}
-                    <div className="mb-4">
-                      <div className="text-xs font-semibold text-[#0D91FD] mb-2">Typography</div>
-                      <div className="space-y-1">
-                        <div className="text-sm font-bold text-gray-800">Heading 1</div>
-                        <div className="text-xs font-semibold text-gray-700">Heading 2</div>
-                        <div className="text-[10px] text-gray-600">Body text sample</div>
+                    <div className="mb-3">
+                      <div className="text-[10px] font-semibold text-[#0D91FD] mb-1.5">Typography</div>
+                      <div className="space-y-0.5">
+                        <div className="text-xs font-bold text-gray-800">Heading 1</div>
+                        <div className="text-[10px] font-semibold text-gray-700">Heading 2</div>
+                        <div className="text-[9px] text-gray-600">Body text sample</div>
                       </div>
                     </div>
 
                     {/* Components Section */}
-                    <div className="mb-4">
-                      <div className="text-xs font-semibold text-[#0D91FD] mb-2">UI Components</div>
-                      <div className="flex gap-2 mb-2">
-                        <div className="px-2 py-1 bg-[#0D91FD] rounded text-[8px] text-white">Primary</div>
-                        <div className="px-2 py-1 bg-gray-200 rounded text-[8px] text-gray-700">Secondary</div>
+                    <div className="mb-3">
+                      <div className="text-[10px] font-semibold text-[#0D91FD] mb-1.5">UI Components</div>
+                      <div className="flex gap-1.5 mb-1.5">
+                        <div className="px-1.5 py-0.5 bg-[#0D91FD] rounded text-[7px] text-white">Primary</div>
+                        <div className="px-1.5 py-0.5 bg-gray-200 rounded text-[7px] text-gray-700">Secondary</div>
+                        <div className="px-1.5 py-0.5 border border-gray-300 rounded text-[7px] text-gray-600">Outline</div>
                       </div>
-                      <div className="h-6 bg-gray-100 rounded border border-gray-200 px-2 flex items-center">
-                        <span className="text-[8px] text-gray-400">Input field</span>
+                      <div className="h-5 bg-gray-100 rounded border border-gray-200 px-1.5 flex items-center">
+                        <span className="text-[7px] text-gray-400">Input field</span>
+                      </div>
+                    </div>
+
+                    {/* Accessibility Section */}
+                    <div className="mb-3">
+                      <div className="text-[10px] font-semibold text-[#0D91FD] mb-1.5">Accessibility</div>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[7px]">
+                          <span className="text-gray-500">Primary / White</span>
+                          <span className="text-green-600 font-medium">12.5:1 AAA</span>
+                        </div>
+                        <div className="flex items-center justify-between text-[7px]">
+                          <span className="text-gray-500">Accent / White</span>
+                          <span className="text-green-600 font-medium">4.6:1 AA</span>
+                        </div>
                       </div>
                     </div>
 
                     {/* Spacing Section */}
-                    <div>
-                      <div className="text-xs font-semibold text-[#0D91FD] mb-2">Spacing Scale</div>
-                      <div className="flex items-end gap-1">
-                        <div className="w-2 h-2 bg-[#0D91FD]/30 rounded-sm" />
-                        <div className="w-3 h-3 bg-[#0D91FD]/40 rounded-sm" />
-                        <div className="w-4 h-4 bg-[#0D91FD]/50 rounded-sm" />
-                        <div className="w-5 h-5 bg-[#0D91FD]/60 rounded-sm" />
-                        <div className="w-6 h-6 bg-[#0D91FD]/70 rounded-sm" />
+                    <div className="mb-3">
+                      <div className="text-[10px] font-semibold text-[#0D91FD] mb-1.5">Spacing Scale</div>
+                      <div className="flex items-end gap-0.5">
+                        <div className="w-1.5 h-1.5 bg-[#0D91FD]/30 rounded-sm" />
+                        <div className="w-2 h-2 bg-[#0D91FD]/40 rounded-sm" />
+                        <div className="w-3 h-3 bg-[#0D91FD]/50 rounded-sm" />
+                        <div className="w-4 h-4 bg-[#0D91FD]/60 rounded-sm" />
+                        <div className="w-5 h-5 bg-[#0D91FD]/70 rounded-sm" />
                       </div>
+                    </div>
+
+                    {/* Grid Section */}
+                    <div className="flex-1">
+                      <div className="text-[10px] font-semibold text-[#0D91FD] mb-1.5">Grid System</div>
+                      <div className="flex gap-0.5 h-6">
+                        {[...Array(6)].map((_, i) => (
+                          <div key={i} className="flex-1 bg-[#0D91FD]/10 rounded-sm border border-[#0D91FD]/20" />
+                        ))}
+                      </div>
+                      <div className="text-[7px] text-gray-400 mt-1">6-column responsive grid</div>
+                    </div>
+
+                    {/* Page Footer */}
+                    <div className="pt-2 mt-auto border-t border-gray-100 flex justify-between items-center">
+                      <span className="text-[7px] text-gray-400">Style Guide Generator</span>
+                      <span className="text-[7px] text-gray-400">Page 5 of 19</span>
                     </div>
                   </div>
                 </div>
