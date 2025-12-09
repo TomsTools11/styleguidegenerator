@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const jobId = `job_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
     // Initialize job
-    createJob(jobId, url);
+    await createJob(jobId, url);
 
     // Start analysis in background
     processJob(jobId, url);
@@ -38,37 +38,37 @@ export async function POST(request: NextRequest) {
 }
 
 async function processJob(jobId: string, url: string) {
-  const job = getJob(jobId);
+  const job = await getJob(jobId);
   if (!job) return;
 
   try {
     // Update status: fetching
-    updateJob(jobId, { status: 'fetching', progress: 10 });
+    await updateJob(jobId, { status: 'fetching', progress: 10 });
     await sleep(500);
 
     // Update status: extracting colors
-    updateJob(jobId, { status: 'extracting_colors', progress: 30 });
+    await updateJob(jobId, { status: 'extracting_colors', progress: 30 });
     await sleep(500);
 
     // Update status: extracting typography
-    updateJob(jobId, { status: 'extracting_typography', progress: 50 });
+    await updateJob(jobId, { status: 'extracting_typography', progress: 50 });
     await sleep(500);
 
     // Update status: identifying components
-    updateJob(jobId, { status: 'identifying_components', progress: 70 });
+    await updateJob(jobId, { status: 'identifying_components', progress: 70 });
 
     // Perform actual analysis
     const data = await analyzeWebsite(url);
 
     // Update status: generating PDF
-    updateJob(jobId, { status: 'generating_pdf', progress: 90, data });
+    await updateJob(jobId, { status: 'generating_pdf', progress: 90, data });
     await sleep(500);
 
     // Complete
-    updateJob(jobId, { status: 'completed', progress: 100 });
+    await updateJob(jobId, { status: 'completed', progress: 100 });
   } catch (error) {
     console.error('Job failed:', error);
-    updateJob(jobId, {
+    await updateJob(jobId, {
       status: 'failed',
       error: error instanceof Error ? error.message : 'Analysis failed',
     });

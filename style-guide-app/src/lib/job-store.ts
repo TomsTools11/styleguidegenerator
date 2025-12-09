@@ -1,3 +1,4 @@
+import { redis, isRedisConnected } from './redis';
 import type { StyleGuideData } from '@/types/style-guide';
 
 export interface Job {
@@ -9,37 +10,92 @@ export interface Job {
   createdAt: string;
 }
 
-// Use globalThis to persist across hot reloads in development
-const globalForJobs = globalThis as unknown as {
-  jobStore: Map<string, Job> | undefined;
-};
+// Job key prefix for Redis
+const JOB_PREFIX = 'styleguide:job:';
 
-export const jobStore = globalForJobs.jobStore ?? new Map<string, Job>();
+// Job TTL in seconds (24 hours - jobs auto-expire after this)
+const JOB_TTL = parseInt(process.env.JOB_TTL_SECONDS || '86400', 10);
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForJobs.jobStore = jobStore;
+// In-memory fallback for when Redis is unavailable
+const memoryStore = new Map<string, Job>();
+
+function getJobKey(jobId: string): string {
+  return `${JOB_PREFIX}${jobId}`;
 }
 
-export function createJob(jobId: string, url: string): void {
-  jobStore.set(jobId, {
+export async function createJob(jobId: string, url: string): Promise<void> {
+  const job: Job = {
     status: 'pending',
     progress: 0,
     url,
     createdAt: new Date().toISOString(),
-  });
-}
+  };
 
-export function updateJob(jobId: string, updates: Partial<Job>): void {
-  const job = jobStore.get(jobId);
-  if (job) {
-    jobStore.set(jobId, { ...job, ...updates });
+  const connected = await isRedisConnected();
+  if (connected) {
+    await redis.setex(getJobKey(jobId), JOB_TTL, JSON.stringify(job));
+  } else {
+    // Fallback to in-memory
+    memoryStore.set(jobId, job);
   }
 }
 
-export function getJob(jobId: string): Job | undefined {
-  return jobStore.get(jobId);
+export async function updateJob(jobId: string, updates: Partial<Job>): Promise<void> {
+  const connected = await isRedisConnected();
+
+  if (connected) {
+    const key = getJobKey(jobId);
+    const existing = await redis.get(key);
+
+    if (existing) {
+      const job = JSON.parse(existing) as Job;
+      const updated = { ...job, ...updates };
+      // Reset TTL on each update to keep active jobs alive
+      await redis.setex(key, JOB_TTL, JSON.stringify(updated));
+    }
+  } else {
+    // Fallback to in-memory
+    const job = memoryStore.get(jobId);
+    if (job) {
+      memoryStore.set(jobId, { ...job, ...updates });
+    }
+  }
 }
 
-export function deleteJob(jobId: string): void {
-  jobStore.delete(jobId);
+export async function getJob(jobId: string): Promise<Job | undefined> {
+  const connected = await isRedisConnected();
+
+  if (connected) {
+    const data = await redis.get(getJobKey(jobId));
+    if (data) {
+      return JSON.parse(data) as Job;
+    }
+    return undefined;
+  } else {
+    // Fallback to in-memory
+    return memoryStore.get(jobId);
+  }
+}
+
+export async function deleteJob(jobId: string): Promise<void> {
+  const connected = await isRedisConnected();
+
+  if (connected) {
+    await redis.del(getJobKey(jobId));
+  } else {
+    // Fallback to in-memory
+    memoryStore.delete(jobId);
+  }
+}
+
+// Utility: Get all active jobs (useful for monitoring)
+export async function getActiveJobCount(): Promise<number> {
+  const connected = await isRedisConnected();
+
+  if (connected) {
+    const keys = await redis.keys(`${JOB_PREFIX}*`);
+    return keys.length;
+  } else {
+    return memoryStore.size;
+  }
 }
