@@ -2,7 +2,7 @@
 
 ## Project Status: Deployed to Railway - MVP Working
 
-**Last Updated:** December 8, 2025
+**Last Updated:** December 9, 2025
 
 **Live URL:** https://styleguidegenerator-production.up.railway.app
 
@@ -17,6 +17,7 @@ Successfully deployed to Railway with:
 - Next.js 16 with Turbopack
 - Website analyzer working for most sites
 - PDF generation with Helvetica font
+- **Redis for persistent job storage** ✓
 
 ---
 
@@ -47,6 +48,7 @@ All required packages are installed:
 - `zod` - Form validation
 - `@tanstack/react-query` - Async state management
 - `lucide-react` - Icons
+- `ioredis` - Redis client for job persistence ✓
 
 ### 3. Website Analyzer (Complete)
 - **File:** `src/lib/analyzer.ts`
@@ -63,70 +65,87 @@ All required packages are installed:
 - **railway.json** configuration
 - TypeScript build errors bypassed with `ignoreBuildErrors: true`
 - PDF generation using built-in Helvetica font
+- **Redis service connected** for job persistence ✓
+
+### 5. Redis Job Persistence (Complete) ✓
+- **Files:** `src/lib/redis.ts`, `src/lib/job-store.ts`
+- Redis client with connection handling and retry logic
+- Job store rewritten to use Redis with in-memory fallback
+- Jobs auto-expire after 24 hours (configurable via `JOB_TTL_SECONDS`)
+- All API routes updated for async job operations
+- `.env.example` created with configuration options
 
 ---
 
-## Known Limitations (To Fix Next Session)
+## Remaining Improvements (Priority Order)
 
-### CRITICAL - Should Fix Soon
+### CRITICAL - Should Fix Next
 
-#### 1. In-Memory Job Store - Data Loss on Restarts
-**File:** `src/lib/job-store.ts`
-- Uses `globalThis` Map for job storage
-- All jobs are lost when Railway container restarts
-- Users get "Job not found" errors if restart happens during analysis
-- **Fix:** Replace with Redis or PostgreSQL (Railway offers both)
-
-#### 2. No Concurrency Control
+#### 1. Concurrency Control / Job Queue
 **File:** `src/app/api/analyze/route.ts`
-- `processJob()` is fire-and-forget with no limits
-- Multiple simultaneous requests spawn unlimited browser instances
+- **Problem:** `processJob()` is fire-and-forget with no limits
+- Multiple simultaneous requests spawn unlimited browser instances (~150-300MB each)
 - Could exhaust memory and crash under load
-- **Fix:** Implement job queue with max 2-3 concurrent browser instances
+- **Solution Options:**
+  - Simple semaphore (in-memory counter) - Low complexity
+  - BullMQ + Redis (full job queue) - Medium complexity, recommended since Redis exists
+- **Benefits:** Prevents resource exhaustion, enables job prioritization
 
 ### MEDIUM - Stability Improvements
 
-#### 3. Browser Resource Management
+#### 2. Browser Connection Pooling
 **File:** `src/lib/analyzer.ts`
-- Each analysis spawns a new Chromium browser (~150-300MB)
+- **Problem:** Each analysis spawns a new Chromium browser
 - No connection pooling or browser reuse
-- **Fix:** Implement browser pooling or use headless browser service (Browserless.io)
+- **Solution Options:**
+  - Implement browser pool (reuse 2-3 browser instances)
+  - Use headless browser service (Browserless.io)
+- **Benefits:** Reduced memory usage, faster analysis
 
-#### 4. Memory Leak in Job Store
-**File:** `src/lib/job-store.ts`
-- No cleanup of completed jobs
-- Map grows indefinitely with each analysis
-- **Fix:** Implement job TTL/expiration (e.g., 1-24 hours)
-
-#### 5. No Environment Variables
-- No `.env.example` file
-- Timeouts, database URLs, etc. are hardcoded
-- **Fix:** Create environment variable configuration
-
-### LOW - Nice to Have
-
-#### 6. Limited Error Handling for URLs
+#### 3. Enhanced Error Handling
 **File:** `src/lib/analyzer.ts`
-- No retry logic for flaky websites
+- **Problem:** No retry logic for flaky websites
 - No handling for 401/403 blocked sites
 - No DNS resolution timeout
-- **Fix:** Add comprehensive error handling and retries
+- **Solution:** Add comprehensive error handling with 3 retries and exponential backoff
+- **Benefits:** Better user experience, handles transient failures
 
-#### 7. Fixed Timeouts
+#### 4. Configurable Timeouts
 **File:** `src/lib/analyzer.ts`
-- 30s page load timeout may be too short for slow sites
+- **Problem:** 30s page load timeout may be too short for slow sites
 - 2s JS render wait is arbitrary
-- **Fix:** Make timeouts configurable via environment variables
+- **Solution:** Make timeouts configurable via environment variables
+- **Benefits:** Flexibility for different site types
+
+### LOW - Future Enhancements
+
+#### 5. Rate Limiting
+- Limit requests per IP/session to prevent abuse
+- Could use Redis for distributed rate limiting
+
+#### 6. Analytics/Usage Tracking
+- Track number of analyses, popular sites, success/failure rates
+- Could use Supabase or simple Redis counters
+
+#### 7. Caching Recently Analyzed Sites
+- Cache results for recently analyzed URLs
+- Serve cached results for repeat requests within a time window
+
+#### 8. Custom PDF Branding
+- Allow users to customize PDF colors/branding
+- White-label option for agencies
 
 ---
 
-## Recommended Fixes (Priority Order)
+## Environment Variables
 
-1. **Add Redis for job persistence** - Essential for production reliability
-2. **Implement concurrency limiting** - Prevent resource exhaustion
-3. **Add job cleanup/TTL** - Prevent memory leaks
-4. **Add environment variables** - Enable flexible deployment
-5. **Improve error handling** - Better user experience
+```bash
+# Redis Configuration (required for persistence)
+REDIS_URL=redis://default:password@host:port
+
+# Job Configuration (optional)
+JOB_TTL_SECONDS=86400  # 24 hours default
+```
 
 ---
 
@@ -134,7 +153,7 @@ All required packages are installed:
 
 1. **Navigate to project:**
    ```bash
-   cd /Users/tpanos/TProjects/style-guide-generatorv2/styleguidegenerator/style-guide-app
+   cd style-guide-app
    ```
 
 2. **Start development server:**
@@ -142,7 +161,12 @@ All required packages are installed:
    npm run dev
    ```
 
-3. **Test the flow:**
+3. **For local Redis (optional):**
+   ```bash
+   docker run -d -p 6379:6379 redis:alpine
+   ```
+
+4. **Test the flow:**
    - Open http://localhost:3000
    - Enter a website URL (e.g., https://example.com)
    - Watch processing progress
@@ -176,12 +200,14 @@ style-guide-app/
 │   ├── lib/
 │   │   ├── utils.ts                    # Utility functions
 │   │   ├── analyzer.ts                 # Website analysis engine
-│   │   ├── job-store.ts                # In-memory job storage
+│   │   ├── redis.ts                    # Redis client ✓
+│   │   ├── job-store.ts                # Redis job storage ✓
 │   │   └── pdf/
 │   │       ├── styles.ts               # PDF stylesheet (Helvetica)
 │   │       └── StyleGuideDocument.tsx  # Complete PDF template
 │   └── types/
 │       └── style-guide.ts              # TypeScript interfaces
+├── .env.example                        # Environment config template ✓
 ├── Dockerfile                          # Railway deployment
 ├── railway.json                        # Railway config
 ├── package.json
@@ -228,6 +254,12 @@ Using `@react-pdf/renderer` with:
 - Auto-scrolls to trigger lazy loading
 - 30-second timeout for page load
 
+### Redis Job Storage
+- Jobs stored with key prefix `styleguide:job:`
+- Auto-expire after 24 hours (configurable)
+- Graceful fallback to in-memory if Redis unavailable
+- Connection retry with exponential backoff
+
 ---
 
 ## Key Brand Colors Used
@@ -250,3 +282,14 @@ Using `@react-pdf/renderer` with:
 - Accent: #5DB5FE
 - Lightest: #C2E3FE
 - Table Header BG: #E8F4FD
+
+---
+
+## Future Considerations
+
+### Supabase Migration
+Could migrate from Redis to Supabase for:
+- PostgreSQL for job storage (more query flexibility)
+- Realtime subscriptions (push job status instead of polling)
+- Edge Functions for analysis offloading
+- Built-in auth if user accounts needed later
