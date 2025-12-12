@@ -101,14 +101,13 @@ export default function Home() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 glass">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#407EC9] flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-semibold text-lg text-white" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
-              Style Guide Generator
-            </span>
-          </div>
+          <a href="https://docbuildr.app" target="_blank" rel="noopener noreferrer" className="flex items-center">
+            <img
+              src="/docbuildr-logo.svg"
+              alt="DocBuildr"
+              className="h-8 w-auto"
+            />
+          </a>
           <nav className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-[#A7A39A] hover:text-white transition-colors">Features</a>
             <a href="#how-it-works" className="text-[#A7A39A] hover:text-white transition-colors">How it Works</a>
