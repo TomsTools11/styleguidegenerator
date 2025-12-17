@@ -165,8 +165,9 @@ export async function analyzeWebsite(url: string): Promise<StyleGuideData> {
     // Then wait a bit for JS to render
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
-    // Wait for body to be visible and give JS time to render
-    await page.waitForSelector('body', { timeout: 10000 });
+    // Wait for body to be attached to DOM (not necessarily visible, as some sites hide body during initialization)
+    await page.waitForSelector('body', { state: 'attached', timeout: 10000 });
+    // Give JS time to render and potentially unhide the body
     await page.waitForTimeout(2000);
 
     // Dismiss common popups, cookie banners, and modals
