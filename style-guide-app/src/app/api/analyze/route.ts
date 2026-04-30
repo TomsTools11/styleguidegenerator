@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeWebsite } from '@/lib/analyzer';
-import { createJob, updateJob, getJob } from '@/lib/job-store';
 
 // Vercel: Chromium analysis takes 30–60s; default 10s timeout would kill
 // every request. Pro plan required (Hobby caps maxDuration at 10s).
@@ -8,78 +7,39 @@ export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
+  let url: string | undefined;
   try {
     const body = await request.json();
-    const { url } = body;
+    url = body.url;
 
     if (!url) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
-    // Validate URL
+    // Validate URL — only http/https, no javascript:/file:/etc.
+    let parsed: URL;
     try {
-      new URL(url);
+      parsed = new URL(url);
     } catch {
       return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
     }
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return NextResponse.json(
+        { error: 'Only http(s) URLs are allowed' },
+        { status: 400 },
+      );
+    }
 
-    // Create job ID
-    const jobId = `job_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-
-    // Initialize job
-    createJob(jobId, url);
-
-    // Start analysis in background
-    processJob(jobId, url);
-
-    return NextResponse.json({ jobId, status: 'pending' });
-  } catch (error) {
-    console.error('Error starting analysis:', error);
-    return NextResponse.json(
-      { error: 'Failed to start analysis' },
-      { status: 500 }
-    );
-  }
-}
-
-async function processJob(jobId: string, url: string) {
-  const job = getJob(jobId);
-  if (!job) return;
-
-  try {
-    // Update status: fetching
-    updateJob(jobId, { status: 'fetching', progress: 10 });
-    await sleep(500);
-
-    // Update status: extracting colors
-    updateJob(jobId, { status: 'extracting_colors', progress: 30 });
-    await sleep(500);
-
-    // Update status: extracting typography
-    updateJob(jobId, { status: 'extracting_typography', progress: 50 });
-    await sleep(500);
-
-    // Update status: identifying components
-    updateJob(jobId, { status: 'identifying_components', progress: 70 });
-
-    // Perform actual analysis
+    // Run the full analysis inline. Returning data directly avoids the
+    // need for shared state across serverless instances — Vercel splits
+    // requests across lambdas, so an in-memory job store would 404 the
+    // status poll the moment it landed on a different instance.
     const data = await analyzeWebsite(url);
 
-    // Update status: generating PDF
-    updateJob(jobId, { status: 'generating_pdf', progress: 90, data });
-    await sleep(500);
-
-    // Complete
-    updateJob(jobId, { status: 'completed', progress: 100 });
+    return NextResponse.json({ data });
   } catch (error) {
-    console.error('Job failed:', error);
-    updateJob(jobId, {
-      status: 'failed',
-      error: error instanceof Error ? error.message : 'Analysis failed',
-    });
+    console.error('Analysis failed for', url, error);
+    const message = error instanceof Error ? error.message : 'Analysis failed';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
