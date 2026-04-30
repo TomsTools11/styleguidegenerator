@@ -1,19 +1,27 @@
 import { chromium, type Browser, type Page } from 'playwright-core';
 import type { StyleGuideData, Color, TypeScaleItem } from '@/types/style-guide';
 
-// On Vercel (serverless) we use @sparticuz/chromium, a Lambda-compatible
-// Chromium build (~50 MB) that fits in a function bundle. Locally and on
-// Railway/Docker we use the full Playwright Chromium that comes with the
-// playwright base image or the dev install.
+// Pinned to the @sparticuz/chromium-min major matching our installed
+// dep — bumping the dep means bumping this URL in lockstep so the
+// downloaded binary matches the JS API version.
+const SPARTICUZ_CHROMIUM_VERSION = 'v148.0.0';
+const SPARTICUZ_REMOTE_BINARY = `https://github.com/Sparticuz/chromium/releases/download/${SPARTICUZ_CHROMIUM_VERSION}/chromium-${SPARTICUZ_CHROMIUM_VERSION}-pack.x64.tar`;
+
+// On Vercel (serverless) we use @sparticuz/chromium-min: it ships only the
+// JS shim and downloads the Chromium binary from a CDN at runtime to /tmp.
+// That sidesteps Vercel/Next's bundler, which doesn't reliably include the
+// regular @sparticuz/chromium binary in the Lambda bundle. Locally and on
+// Railway/Docker we use the full Playwright Chromium installed with the
+// `playwright` devDep (or shipped in the Microsoft Playwright Docker image).
 async function launchBrowser(): Promise<Browser> {
   const isServerless =
     process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME !== undefined;
 
   if (isServerless) {
-    const sparticuz = (await import('@sparticuz/chromium')).default;
+    const sparticuz = (await import('@sparticuz/chromium-min')).default;
     return chromium.launch({
       args: sparticuz.args,
-      executablePath: await sparticuz.executablePath(),
+      executablePath: await sparticuz.executablePath(SPARTICUZ_REMOTE_BINARY),
       headless: true,
     });
   }

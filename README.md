@@ -170,7 +170,7 @@ The app is configured for Vercel deployment via [`style-guide-app/vercel.json`](
 
 1. Push the repo to GitHub.
 2. In Vercel, click **Add New → Project** and import the repo.
-3. **Set Root Directory to `style-guide-app`** (the Next app lives in a subfolder; without this Vercel will not find `package.json`).
+3. **Set Root Directory to `style-guide-app`** ← critical. If you skip this, Vercel will still build (it auto-detects Next.js inside the subfolder) but the Lambda's working directory ends up as `/var/task/style-guide-app/...` instead of `/var/task/...`, which silently breaks any path resolution from `process.cwd()`. Verify under **Settings → General → Root Directory** before you deploy.
 4. Framework preset: **Next.js** (auto-detected).
 5. Build command, output, and install command: leave as defaults.
 6. Click **Deploy**.
@@ -178,7 +178,7 @@ The app is configured for Vercel deployment via [`style-guide-app/vercel.json`](
 #### Notes specific to this app
 
 - **Vercel Pro is required.** The `/api/analyze` route launches headless Chromium and runs for ~30–60s per request; Hobby caps function `maxDuration` at 10s, which kills every analyze request. Pro lifts that to 300s. The `vercel.json` requests 60s for `/api/analyze` and 30s for `/api/generate-pdf`.
-- **Chromium runs via [`@sparticuz/chromium`](https://github.com/Sparticuz/chromium).** Regular Playwright won't fit in a Vercel function bundle (~300MB). The analyzer detects `process.env.VERCEL === '1'` and switches to the Lambda-compatible build at runtime; locally and on Docker it uses standard Playwright Chromium.
+- **Chromium runs via [`@sparticuz/chromium-min`](https://github.com/Sparticuz/chromium#-min-package).** Regular Playwright won't fit in a Vercel function bundle (~300 MB), and the standard `@sparticuz/chromium` package's binary doesn't always survive Next/Webpack file tracing. `chromium-min` ships only the JS shim and downloads the binary from the GitHub release matching `SPARTICUZ_CHROMIUM_VERSION` in [`analyzer.ts`](style-guide-app/src/lib/analyzer.ts) to `/tmp` on first invocation. **When you bump the npm package, bump the URL in lockstep** — the binary version must match the JS API version.
 - **No environment variables are required** for the basic flow. Optional extras: `ANTHROPIC_API_KEY` for the planned brand-copy generation, `REDIS_URL` for persistent job storage (the current in-memory `Map` resets on every cold start, which on Vercel happens often).
 - **Function memory is set to 1024 MB** (default 1024 on Vercel) for both Chromium-bearing routes.
 

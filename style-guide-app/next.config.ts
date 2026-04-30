@@ -6,10 +6,10 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
 
-  // Keep the Chromium binary out of the Next.js bundle. @sparticuz/chromium
-  // ships a brotli-compressed binary that needs to be `require`d at runtime
-  // from node_modules — bundling breaks it. playwright-core has the same need.
-  serverExternalPackages: ['@sparticuz/chromium', 'playwright-core'],
+  // Keep the Chromium loader out of the Next.js bundle. @sparticuz/chromium-min
+  // resolves a remote tarball to /tmp at runtime; if Webpack rewrites its
+  // require()s the path resolution breaks. playwright-core has the same need.
+  serverExternalPackages: ['@sparticuz/chromium-min', 'playwright-core'],
 };
 
 export default nextConfig;
