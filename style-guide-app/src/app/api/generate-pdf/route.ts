@@ -4,6 +4,10 @@ import { StyleGuideDocument } from '@/lib/pdf/StyleGuideDocument';
 import type { StyleGuideData } from '@/types/style-guide';
 import React from 'react';
 
+// react-pdf's renderToBuffer can take 5–15s on a 19-page document.
+export const runtime = 'nodejs';
+export const maxDuration = 30;
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

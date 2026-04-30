@@ -1,473 +1,443 @@
 'use client';
 
-import { useState } from 'react';
+import Image from 'next/image';
+import { useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import {
-  Palette,
-  Type,
-  Layout,
-  Accessibility,
-  FileText,
-  Zap,
-  ArrowRight,
-  Globe,
-  Sparkles,
-  CheckCircle2
-} from 'lucide-react';
+  IcArrow,
+  IcSpinner,
+  IcCheck,
+  IcPalette,
+  IcType,
+  IcComponents,
+  IcAccess,
+  IcPdf,
+  IcBolt,
+} from '@/components/style-snap/icons';
+import { PdfMockup } from '@/components/style-snap/PdfMockup';
+
+const FEATURES: { icon: ReactNode; title: string; body: string; tag: string }[] = [
+  {
+    icon: <IcPalette />,
+    title: 'Color extraction',
+    body: 'We pull every brand-meaningful color, classify primary, secondary, accent, surface, and text — and write hex, RGB, and HSL.',
+    tag: 'rgb · hex · hsl',
+  },
+  {
+    icon: <IcType />,
+    title: 'Typography analysis',
+    body: 'Detected font families, weights, and sizes resolve into a clean, ratio-based type scale your team can actually use.',
+    tag: 'modular scale',
+  },
+  {
+    icon: <IcComponents />,
+    title: 'Component detection',
+    body: 'Buttons, inputs, cards, and nav patterns are identified and documented with their states and structural specs.',
+    tag: 'buttons · forms · cards',
+  },
+  {
+    icon: <IcAccess />,
+    title: 'Accessibility audit',
+    body: 'WCAG AA / AAA contrast checks on every text–surface pair. Failures are flagged with the contrast ratio.',
+    tag: 'WCAG 2.2',
+  },
+  {
+    icon: <IcPdf />,
+    title: 'Print-ready PDF',
+    body: 'A 19-page document with cover, table of contents, sections, and an index — formatted for screen and A4 print.',
+    tag: 'A4 · letter',
+  },
+  {
+    icon: <IcBolt />,
+    title: 'Under 60 seconds',
+    body: 'Crawl, classify, render, paginate. Average run takes 47 seconds. Long tail capped at one minute.',
+    tag: '≈ 47s avg',
+  },
+];
+
+const STEPS = [
+  {
+    num: '01',
+    title: 'Paste a URL',
+    body: 'Drop in any public site. We crawl the homepage and one level deep, render with a real engine, and capture computed styles.',
+    detail: 'GET /analyze → 200',
+  },
+  {
+    num: '02',
+    title: 'We classify',
+    body: 'Tokens get clustered, named, and ranked. Type collapses into a scale. Components are detected by shape, not selector.',
+    detail: 'tokens: 142 · roles: 7',
+  },
+  {
+    num: '03',
+    title: 'Download a PDF',
+    body: 'Stable URL at stylesnap.sh/r/<slug>. Open it, share it, print it. Re-runs replace the file at the same link.',
+    detail: '/r/9kR2vH.pdf',
+  },
+];
+
+const PDF_INCLUDES = [
+  'Cover page with a captured brand mark',
+  'Table of contents and document index',
+  'Color palette with hex, RGB, and HSL values',
+  'Typography scale and font specifications',
+  'UI component documentation with states',
+  'Layout, grid, and spacing tokens',
+  'Accessibility compliance report',
+  'Resource links and a versioned changelog',
+];
+
+const FAQS: { q: string; a: ReactNode }[] = [
+  {
+    q: 'Is it really free?',
+    a: 'Yes. No card, no account, no paywall. If StyleSnap saves you an afternoon, tips at s3labs.com keep it running — but nothing is gated.',
+  },
+  {
+    q: 'What sites can I analyze?',
+    a: 'Any public website that loads without authentication. We render the page in a real browser, so SPAs, lazy-loaded fonts, and CSS-in-JS all work. Behind a login or VPN — not yet.',
+  },
+  {
+    q: 'How long does generation take?',
+    a: 'Most runs finish in under 60 seconds. Average is 47 seconds. Heavy SPAs can push toward the cap.',
+  },
+  {
+    q: 'Can I edit the style guide afterwards?',
+    a: "The PDF is final. We're working on an editable HTML output and a token export (JSON, CSS variables, Tailwind theme) — both planned for v1.1.",
+  },
+  {
+    q: 'Do you store the analyzed site?',
+    a: "We cache the rendered output for 24 hours so re-downloads are instant, then it's purged. The PDF stays at its slug forever.",
+  },
+  {
+    q: "What's the URL pattern for guides?",
+    a: (
+      <>
+        Each guide gets a 6-character Base62 slug — e.g.{' '}
+        <code>stylesnap.sh/r/9kR2vH</code>. Not indexed, not listed. Shareable means shareable on purpose.
+      </>
+    ),
+  },
+  {
+    q: 'Who made this?',
+    a: 'A tiny utility from S3 Labs. Same studio that ships DropDoc. One page, one input, one output.',
+  },
+];
+
+const EXAMPLES = ['stripe.com', 'notion.so', 'linear.app', 'vercel.com'];
 
 export default function Home() {
   const router = useRouter();
   const [url, setUrl] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [openFaq, setOpenFaq] = useState<number>(0);
 
-  const validateUrl = (input: string): boolean => {
+  const validate = (input: string): boolean => {
     try {
-      const urlToTest = input.startsWith('http') ? input : `https://${input}`;
-      new URL(urlToTest);
-      return true;
+      const candidate = input.startsWith('http') ? input : `https://${input}`;
+      const parsed = new URL(candidate);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
     } catch {
       return false;
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+
+    const trimmed = url.trim();
+    if (!trimmed) {
+      setError('Enter a website URL.');
+      return;
+    }
+    if (!validate(trimmed)) {
+      setError('That doesn’t look like a valid URL.');
+      return;
+    }
     setError('');
-
-    if (!url.trim()) {
-      setError('Please enter a website URL');
-      return;
-    }
-
-    if (!validateUrl(url)) {
-      setError('Please enter a valid URL (e.g., example.com or https://example.com)');
-      return;
-    }
-
-    setIsLoading(true);
-
-    // Normalize URL
-    const normalizedUrl = url.startsWith('http') ? url : `https://${url}`;
-
-    // Navigate to processing page with URL as query param
-    router.push(`/processing?url=${encodeURIComponent(normalizedUrl)}`);
+    setLoading(true);
+    const normalized = trimmed.startsWith('http') ? trimmed : `https://${trimmed}`;
+    router.push(`/processing?url=${encodeURIComponent(normalized)}`);
   };
 
-  const features = [
-    {
-      icon: Palette,
-      title: 'Color Extraction',
-      description: 'Automatically extracts and organizes your color palette with hex, RGB values, and semantic roles.',
-    },
-    {
-      icon: Type,
-      title: 'Typography Analysis',
-      description: 'Identifies font families, sizes, weights, and builds a comprehensive type scale.',
-    },
-    {
-      icon: Layout,
-      title: 'Component Detection',
-      description: 'Detects buttons, cards, forms, and navigation patterns used across your site.',
-    },
-    {
-      icon: Accessibility,
-      title: 'Accessibility Audit',
-      description: 'Evaluates color contrast ratios and provides WCAG compliance documentation.',
-    },
-    {
-      icon: FileText,
-      title: 'Professional PDF',
-      description: 'Generates a beautifully formatted, 19-page style guide ready for your team.',
-    },
-    {
-      icon: Zap,
-      title: 'Instant Results',
-      description: 'Complete analysis and PDF generation in under 60 seconds.',
-    },
-  ];
-
-  const steps = [
-    { number: '01', title: 'Enter URL', description: 'Paste any website URL you want to analyze' },
-    { number: '02', title: 'AI Analysis', description: 'Our engine extracts design patterns automatically' },
-    { number: '03', title: 'Download PDF', description: 'Get a professional style guide document' },
-  ];
-
   return (
-    <div className="min-h-screen bg-[#191919]">
+    <>
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <a href="https://docbuildr.app" target="_blank" rel="noopener noreferrer" className="flex items-center">
-            <img
-              src="/docbuildr-logo.svg"
-              alt="DocBuildr"
-              className="h-8 w-auto"
+      <header className="ss-header">
+        <div className="ss-header-inner">
+          <a href="https://s3labs.tech" className="ss-brand-link" aria-label="S3 Labs">
+            <Image
+              src="/brand/s3labs-logo.png"
+              alt="S3 Labs"
+              width={130}
+              height={50}
+              className="ss-brand-logo"
+              priority
+              style={{ height: 50, width: 130, objectFit: 'contain' }}
             />
           </a>
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-[#A7A39A] hover:text-white transition-colors">Features</a>
-            <a href="#how-it-works" className="text-[#A7A39A] hover:text-white transition-colors">How it Works</a>
+          <nav className="ss-nav">
+            <a className="nav-link" href="#features">Features</a>
+            <a className="nav-link" href="#how">How it works</a>
+            <a className="nav-link" href="#faq">FAQ</a>
+            <span className="ss-meta">
+              v1.0<span className="dot">·</span>by s3 labs
+            </span>
           </nav>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="pt-24">
-        <section className="max-w-7xl mx-auto px-6 py-20 md:py-32">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#202020] border border-[#444B4E] mb-8 animate-fade-in">
-              <Sparkles className="w-4 h-4 text-[#407EC9]" />
-              <span className="text-sm text-[#EDEEEE]">AI-Powered Design System Extraction</span>
+      <main>
+        {/* Hero */}
+        <section className="hero ss-container">
+          <div className="hero-eyebrow">
+            <span className="pulse" />
+            a tiny utility from s3 labs
+          </div>
+          <h1 className="hero-h1">
+            Create professional style guides.{' '}
+            <span className="muted">In just seconds.</span>
+          </h1>
+          <p className="hero-lead">
+            Enter any website URL and receive a comprehensive, beautifully formatted PDF
+            style guide documenting colors, typography, components, and more.
+          </p>
+
+          <form className="url-form-wrap" onSubmit={submit} noValidate>
+            <div className="url-form">
+              <span className="url-prefix">https://</span>
+              <input
+                className="url-input"
+                type="text"
+                inputMode="url"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+                placeholder="stripe.com"
+                value={url}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  if (error) setError('');
+                }}
+                aria-label="Website URL"
+              />
+              <button
+                type="submit"
+                className="url-submit"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <IcSpinner />
+                    <span>Analyzing…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Generate guide</span>
+                    <IcArrow />
+                  </>
+                )}
+              </button>
             </div>
-
-            {/* Headline */}
-            <h1
-              className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight animate-fade-in"
-              style={{ fontFamily: "'Red Hat Display', sans-serif", animationDelay: '0.1s' }}
-            >
-              Generate Professional{' '}
-              <span className="gradient-text">Style Guides</span>
-              {' '}in Seconds
-            </h1>
-
-            {/* Subheadline */}
-            <p
-              className="text-lg md:text-xl text-[#A7A39A] mb-12 max-w-2xl mx-auto animate-fade-in"
-              style={{ animationDelay: '0.2s' }}
-            >
-              Enter any website URL and receive a comprehensive, beautifully formatted
-              PDF style guide documenting colors, typography, components, and more.
+            <p className="url-tail">
+              <span className="label">try:</span>
+              <span className="example-list">
+                {EXAMPLES.map((ex) => (
+                  <button
+                    type="button"
+                    key={ex}
+                    className="example-chip"
+                    onClick={() => setUrl(ex)}
+                  >
+                    {ex}
+                  </button>
+                ))}
+              </span>
             </p>
+            {error && <p className="url-error">{error}</p>}
+          </form>
 
-            {/* URL Input Form */}
-            <form
-              onSubmit={handleSubmit}
-              className="max-w-2xl mx-auto mb-8 animate-fade-in"
-              style={{ animationDelay: '0.3s' }}
-            >
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A7A39A]" />
-                  <Input
-                    type="text"
-                    placeholder="Enter website URL (e.g., stripe.com)"
-                    value={url}
-                    onChange={(e) => {
-                      setUrl(e.target.value);
-                      setError('');
-                    }}
-                    className="w-full h-14 pl-12 pr-4 bg-[#202020] border-[#444B4E] text-white placeholder:text-[#A7A39A] rounded-xl focus:ring-2 focus:ring-[#407EC9] focus:border-transparent text-lg"
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="h-14 px-8 bg-[#407EC9] hover:bg-[#327DA9] text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-[#407EC9]/25 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Analyzing...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span>Generate Guide</span>
-                      <ArrowRight className="w-5 h-5" />
-                    </div>
-                  )}
-                </Button>
-              </div>
-              {error && (
-                <p className="mt-3 text-[#D44E49] text-sm text-left">{error}</p>
-              )}
-            </form>
-
-            {/* Example links */}
-            <div
-              className="flex flex-wrap items-center justify-center gap-3 text-sm animate-fade-in"
-              style={{ animationDelay: '0.4s' }}
-            >
-              <span className="text-[#A7A39A]">Try examples:</span>
-              {['stripe.com', 'notion.so', 'linear.app'].map((example) => (
-                <button
-                  key={example}
-                  onClick={() => setUrl(example)}
-                  className="px-3 py-1.5 rounded-lg bg-[#202020] border border-[#444B4E] text-[#EDEEEE] hover:border-[#407EC9] hover:text-[#407EC9] transition-colors"
-                >
-                  {example}
-                </button>
-              ))}
+          {/* Stats */}
+          <div className="hero-stats">
+            <div className="stat">
+              <div className="stat-value">≈47s</div>
+              <div className="stat-label">average run</div>
             </div>
-          </div>
-
-          {/* Preview mockup */}
-          <div
-            className="mt-20 max-w-5xl mx-auto animate-fade-in"
-            style={{ animationDelay: '0.5s' }}
-          >
-            <div className="relative rounded-2xl bg-[#202020] border border-[#444B4E] p-6 md:p-10 overflow-hidden">
-              {/* Glow effect */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#407EC9] opacity-10 blur-[100px] rounded-full" />
-
-              {/* Mock PDF preview */}
-              <div className="relative grid md:grid-cols-3 gap-6">
-                {/* Page 1 - Cover */}
-                <div className="bg-white rounded-lg shadow-xl p-6 aspect-[3/4] flex flex-col">
-                  <div className="text-[#021A2E] font-bold text-xl mb-2" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
-                    YourSite.com
-                  </div>
-                  <div className="text-gray-500 text-sm mb-6">Brand & Design Style Guide</div>
-                  <div className="flex gap-2 mt-auto">
-                    <div className="w-12 h-8 rounded bg-[#021A2E]" />
-                    <div className="w-12 h-8 rounded bg-[#014379]" />
-                    <div className="w-12 h-8 rounded bg-[#0D91FD]" />
-                    <div className="w-12 h-8 rounded bg-[#5DB5FE]" />
-                    <div className="w-12 h-8 rounded bg-[#C2E3FE]" />
-                  </div>
-                </div>
-
-                {/* Page 2 - Colors */}
-                <div className="bg-white rounded-lg shadow-xl p-6 aspect-[3/4]">
-                  <div className="text-[#0D91FD] font-semibold text-lg mb-4" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
-                    2.2 Color Palette
-                  </div>
-                  <div className="space-y-2">
-                    {['Primary', 'Secondary', 'Accent', 'Text', 'Background'].map((role, i) => (
-                      <div key={role} className="flex items-center gap-3">
-                        <div
-                          className="w-6 h-6 rounded"
-                          style={{ backgroundColor: ['#021A2E', '#014379', '#0D91FD', '#374151', '#F9FAFB'][i] }}
-                        />
-                        <span className="text-gray-700 text-sm">{role}</span>
-                        <span className="text-gray-400 text-xs ml-auto">
-                          {['#021A2E', '#014379', '#0D91FD', '#374151', '#F9FAFB'][i]}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Page 3 - Typography */}
-                <div className="bg-white rounded-lg shadow-xl p-6 aspect-[3/4]">
-                  <div className="text-[#0D91FD] font-semibold text-lg mb-4" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
-                    2.3 Typography
-                  </div>
-                  <div className="space-y-3">
-                    <div className="text-2xl font-bold text-gray-800">Heading 1</div>
-                    <div className="text-xl font-semibold text-gray-700">Heading 2</div>
-                    <div className="text-lg font-medium text-gray-600">Heading 3</div>
-                    <div className="text-base text-gray-500">Body text looks like this, with good readability.</div>
-                    <div className="text-sm text-gray-400">Caption text for smaller details.</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Page indicator */}
-              <div className="flex items-center justify-center gap-2 mt-8">
-                <div className="w-2 h-2 rounded-full bg-[#407EC9]" />
-                <div className="w-2 h-2 rounded-full bg-[#444B4E]" />
-                <div className="w-2 h-2 rounded-full bg-[#444B4E]" />
-                <span className="text-[#A7A39A] text-sm ml-2">19 pages total</span>
-              </div>
+            <div className="stat">
+              <div className="stat-value">19pp</div>
+              <div className="stat-label">guide length</div>
+            </div>
+            <div className="stat">
+              <div className="stat-value">0</div>
+              <div className="stat-label">accounts to create</div>
+            </div>
+            <div className="stat">
+              <div className="stat-value">∞</div>
+              <div className="stat-label">link lifetime</div>
             </div>
           </div>
         </section>
 
-        {/* How it Works */}
-        <section id="how-it-works" className="py-20 bg-[#202020]">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <h2
-                className="text-3xl md:text-4xl font-bold mb-4"
-                style={{ fontFamily: "'Red Hat Display', sans-serif" }}
-              >
-                How It Works
-              </h2>
-              <p className="text-[#A7A39A] text-lg max-w-2xl mx-auto">
-                Three simple steps to create a comprehensive style guide for any website
-              </p>
-            </div>
+        {/* Features */}
+        <section id="features" className="features ss-container">
+          <p className="ss-section-eyebrow" style={{ color: 'var(--brand-accent)' }}>features</p>
+          <h2 className="ss-section-title">
+            Everything a handoff needs.{' '}
+            <span className="muted" style={{ color: 'var(--brand-accent)' }}>Nothing it doesn’t.</span>
+          </h2>
+          <p className="ss-section-lead">
+            Six things, done well. Built for the dev-to-design handoff, not the demo reel.
+          </p>
 
-            <div className="grid md:grid-cols-3 gap-8">
-              {steps.map((step, index) => (
-                <div key={step.number} className="relative">
-                  {/* Connector line */}
-                  {index < steps.length - 1 && (
-                    <div className="hidden md:block absolute top-12 left-full w-full h-0.5 bg-gradient-to-r from-[#407EC9] to-transparent -translate-x-1/2" />
-                  )}
-
-                  <div className="text-center">
-                    <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-[#191919] border border-[#444B4E] mb-6">
-                      <span
-                        className="text-3xl font-bold gradient-text"
-                        style={{ fontFamily: "'Red Hat Display', sans-serif" }}
-                      >
-                        {step.number}
-                      </span>
-                    </div>
-                    <h3
-                      className="text-xl font-semibold mb-2"
-                      style={{ fontFamily: "'Red Hat Display', sans-serif" }}
-                    >
-                      {step.title}
-                    </h3>
-                    <p className="text-[#A7A39A]">{step.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Features Grid */}
-        <section id="features" className="py-20">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <h2
-                className="text-3xl md:text-4xl font-bold mb-4"
-                style={{ fontFamily: "'Red Hat Display', sans-serif" }}
-              >
-                Everything You Need
-              </h2>
-              <p className="text-[#A7A39A] text-lg max-w-2xl mx-auto">
-                Our AI analyzes every aspect of a website's design system and documents it professionally
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {features.map((feature) => (
-                <Card
-                  key={feature.title}
-                  className="bg-[#202020] border-[#444B4E] hover:border-[#407EC9] transition-all duration-300 hover:shadow-lg hover:shadow-[#407EC9]/10 hover:-translate-y-1"
-                >
-                  <CardContent className="p-6">
-                    <div className="w-12 h-12 rounded-xl bg-[#407EC9]/10 flex items-center justify-center mb-4">
-                      <feature.icon className="w-6 h-6 text-[#407EC9]" />
-                    </div>
-                    <h3
-                      className="text-lg font-semibold mb-2 text-white"
-                      style={{ fontFamily: "'Red Hat Display', sans-serif" }}
-                    >
-                      {feature.title}
-                    </h3>
-                    <p className="text-[#A7A39A] text-sm leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* What's Included */}
-        <section className="py-20 bg-[#202020]">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <h2
-                  className="text-3xl md:text-4xl font-bold mb-6"
-                  style={{ fontFamily: "'Red Hat Display', sans-serif" }}
-                >
-                  Professional PDF Output
-                </h2>
-                <p className="text-[#A7A39A] text-lg mb-8">
-                  Every style guide includes comprehensive documentation following industry-standard structure,
-                  ready to share with your team or clients.
-                </p>
-
-                <div className="space-y-4">
-                  {[
-                    'Cover page with brand colors',
-                    'Table of contents for easy navigation',
-                    'Color palette with hex, RGB values',
-                    'Typography scale and font specifications',
-                    'UI component documentation',
-                    'Layout and grid system specs',
-                    'Accessibility compliance report',
-                    'Resource links and changelog'
-                  ].map((item) => (
-                    <div key={item} className="flex items-center gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-[#448361] flex-shrink-0" />
-                      <span className="text-[#EDEEEE]">{item}</span>
-                    </div>
-                  ))}
-                </div>
+          <div className="features-grid">
+            {FEATURES.map((f) => (
+              <div className="feature" key={f.title}>
+                <span className="feature-icon">{f.icon}</span>
+                <h3>{f.title}</h3>
+                <p>{f.body}</p>
+                <div className="feature-tag">{f.tag}</div>
               </div>
-
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#407EC9]/20 to-[#448361]/20 blur-3xl rounded-full" />
-                <div className="relative bg-[#191919] border border-[#444B4E] rounded-2xl p-8">
-                  <div className="aspect-[3/4] bg-white rounded-lg shadow-2xl p-6">
-                    <div className="border-b border-gray-200 pb-4 mb-4">
-                      <div className="text-2xl font-bold text-[#021A2E]" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
-                        Brand Style Guide
-                      </div>
-                      <div className="text-sm text-gray-500 mt-1">Version 1.0 | Generated Today</div>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="h-3 bg-gray-200 rounded w-3/4" />
-                      <div className="h-3 bg-gray-200 rounded w-full" />
-                      <div className="h-3 bg-gray-200 rounded w-5/6" />
-                      <div className="mt-6 flex gap-2">
-                        <div className="w-8 h-8 rounded bg-[#021A2E]" />
-                        <div className="w-8 h-8 rounded bg-[#0D91FD]" />
-                        <div className="w-8 h-8 rounded bg-[#448361]" />
-                        <div className="w-8 h-8 rounded bg-[#D9730D]" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-20">
-          <div className="max-w-4xl mx-auto px-6 text-center">
-            <h2
-              className="text-3xl md:text-4xl font-bold mb-6"
-              style={{ fontFamily: "'Red Hat Display', sans-serif" }}
-            >
-              Ready to Create Your Style Guide?
+        {/* How it works */}
+        <section id="how" className="how">
+          <div className="ss-container">
+            <p className="ss-section-eyebrow" style={{ color: 'var(--brand-accent)' }}>how it works</p>
+            <h2 className="ss-section-title">
+              Three steps.{' '}
+              <span className="muted" style={{ color: 'var(--brand-accent)' }}>One minute.</span>
             </h2>
-            <p className="text-[#A7A39A] text-lg mb-8 max-w-2xl mx-auto">
-              Join designers and developers who use our tool to document design systems
-              quickly and professionally.
-            </p>
-            <Button
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="h-14 px-10 bg-[#407EC9] hover:bg-[#327DA9] text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-[#407EC9]/25"
-            >
-              <span>Get Started Free</span>
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
+
+            <div className="how-grid">
+              {STEPS.map((s) => (
+                <div className="step" key={s.num}>
+                  <div className="step-num">
+                    {s.num}
+                    <span />
+                  </div>
+                  <h3>{s.title}</h3>
+                  <p>{s.body}</p>
+                  <div className="step-detail">{s.detail}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* PDF preview */}
+        <section className="pdf-section ss-container">
+          <div className="pdf-grid">
+            <div>
+              <p className="ss-section-eyebrow" style={{ color: 'var(--brand-accent)' }}>the output</p>
+              <h2 className="ss-section-title">
+                A pdf style guide.{' '}
+                <span className="muted" style={{ color: 'var(--brand-accent)' }}>Professionally Styled.</span>
+              </h2>
+              <p className="ss-section-lead">
+                The output is one PDF. Designed for the handoff: a cover, a table of contents,
+                then the work — colors, type, components, accessibility, and a versioned changelog.
+                Send it to a client or print it for the kickoff.
+              </p>
+              <ul className="pdf-checklist">
+                {PDF_INCLUDES.map((item) => (
+                  <li key={item}>
+                    <span className="pdf-check">
+                      <IcCheck />
+                    </span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <PdfMockup />
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section id="faq" className="faq ss-container">
+          <p className="ss-section-eyebrow" style={{ color: 'var(--brand-accent)' }}>questions</p>
+          <h2 className="ss-section-title">Things worth asking.</h2>
+
+          <div className="faq-list">
+            {FAQS.map((item, i) => (
+              <div key={i} className={`faq-item${openFaq === i ? ' open' : ''}`}>
+                <button
+                  className="faq-q"
+                  onClick={() => setOpenFaq(openFaq === i ? -1 : i)}
+                  type="button"
+                  aria-expanded={openFaq === i}
+                >
+                  <span>{item.q}</span>
+                  <span className="faq-toggle">+</span>
+                </button>
+                <div className="faq-a">
+                  <div className="faq-a-inner">
+                    <div className="faq-a-text">{item.a}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-[#444B4E]">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded bg-[#407EC9] flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-[#A7A39A]">Style Guide Generator</span>
+      <footer className="ss-footer">
+        <div className="ss-container">
+          <div className="footer-grid">
+            <div className="footer-brand">
+              <Image
+                src="/brand/s3labs-logo.png"
+                alt="S3 Labs"
+                width={130}
+                height={50}
+                className="ss-brand-logo"
+                style={{ height: 50, width: 130, objectFit: 'contain' }}
+              />
+              <p className="footer-tagline">
+                A tiny utility from S3 Labs. One URL in, one printable style guide out.
+                No subscriptions, no ads, no AI branding.
+              </p>
             </div>
-            <p className="text-[#A7A39A] text-sm">
-              Made with ❤️ by <a href="https://tom-panos.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Tom in Milwaukee, WI</a>
-            </p>
+            <div className="footer-col">
+              <h4>product</h4>
+              <ul>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how">How it works</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#">Changelog</a></li>
+              </ul>
+            </div>
+            <div className="footer-col">
+              <h4>studio</h4>
+              <ul>
+                <li><a href="https://s3labs.tech">S3 Labs</a></li>
+                <li><a href="https://s3labs.tech">All products</a></li>
+                <li><a href="https://dropdoc.sh">DropDoc</a></li>
+              </ul>
+            </div>
+            <div className="footer-col">
+              <h4>legal</h4>
+              <ul>
+                <li><a href="#">Terms</a></li>
+                <li><a href="#">Privacy</a></li>
+                <li><a href="#">Acceptable use</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="footer-bottom">
+            <span>© {new Date().getFullYear()} S3 Labs</span>
+            <span>
+              Made with{' '}
+              <span aria-label="love" style={{ color: 'var(--mark-red)' }}>❤</span>{' '}
+              by Tom &amp; Alex from S3 Labs
+            </span>
           </div>
         </div>
       </footer>
-    </div>
+    </>
   );
 }

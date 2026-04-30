@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { analyzeWebsite } from '@/lib/analyzer';
 import { createJob, updateJob, getJob } from '@/lib/job-store';
 
+// Vercel: Chromium analysis takes 30–60s; default 10s timeout would kill
+// every request. Pro plan required (Hobby caps maxDuration at 10s).
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

@@ -1,36 +1,35 @@
-import type { Metadata } from "next";
-import { Inter, Red_Hat_Display } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Geist_Mono } from 'next/font/google';
+import './globals.css';
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const redHatDisplay = Red_Hat_Display({
-  variable: "--font-red-hat-display",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+// Lato is self-hosted via @font-face in globals.css.
+// Geist Mono comes from next/font for tabular-nums + tight subset.
+const geistMono = Geist_Mono({
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
+  weight: ['400', '500'],
 });
 
 export const metadata: Metadata = {
-  title: "Style Guide Generator",
-  description: "Generate professional style guides from any website",
+  title: 'StyleSnap — Create professional style guides in seconds',
+  description:
+    'Enter any website URL and receive a comprehensive, beautifully formatted PDF style guide documenting colors, typography, components, and more. A tiny utility from S3 Labs.',
+  metadataBase: new URL('https://styleguidegenerator-production.up.railway.app'),
+  openGraph: {
+    title: 'StyleSnap — by S3 Labs',
+    description:
+      'Snap any website. Get a printable style guide. No accounts, no subscriptions.',
+    type: 'website',
+  },
+  icons: { icon: '/brand/drop-icon.svg' },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} ${redHatDisplay.variable} antialiased`}
-      >
-        {children}
-      </body>
+    <html lang="en" data-color-scheme="light">
+      <body className={`${geistMono.variable} antialiased`}>{children}</body>
     </html>
   );
 }

@@ -164,27 +164,34 @@ styleguidegenerator/
 
 ## Deployment
 
-### Railway Deployment
+### Vercel (recommended)
 
-The app is configured for one-click deployment to Railway:
+The app is configured for Vercel deployment via [`style-guide-app/vercel.json`](style-guide-app/vercel.json).
 
-1. Fork this repository
-2. Connect to [Railway](https://railway.app)
-3. Select "Deploy from GitHub repo"
-4. Railway will automatically:
-   - Detect the Dockerfile
-   - Build the Docker image with Playwright dependencies
-   - Deploy to a production URL
+1. Push the repo to GitHub.
+2. In Vercel, click **Add New → Project** and import the repo.
+3. **Set Root Directory to `style-guide-app`** (the Next app lives in a subfolder; without this Vercel will not find `package.json`).
+4. Framework preset: **Next.js** (auto-detected).
+5. Build command, output, and install command: leave as defaults.
+6. Click **Deploy**.
 
-### Docker Deployment
+#### Notes specific to this app
 
-Build and run locally with Docker:
+- **Vercel Pro is required.** The `/api/analyze` route launches headless Chromium and runs for ~30–60s per request; Hobby caps function `maxDuration` at 10s, which kills every analyze request. Pro lifts that to 300s. The `vercel.json` requests 60s for `/api/analyze` and 30s for `/api/generate-pdf`.
+- **Chromium runs via [`@sparticuz/chromium`](https://github.com/Sparticuz/chromium).** Regular Playwright won't fit in a Vercel function bundle (~300MB). The analyzer detects `process.env.VERCEL === '1'` and switches to the Lambda-compatible build at runtime; locally and on Docker it uses standard Playwright Chromium.
+- **No environment variables are required** for the basic flow. Optional extras: `ANTHROPIC_API_KEY` for the planned brand-copy generation, `REDIS_URL` for persistent job storage (the current in-memory `Map` resets on every cold start, which on Vercel happens often).
+- **Function memory is set to 1024 MB** (default 1024 on Vercel) for both Chromium-bearing routes.
+
+### Railway (legacy)
+
+The original deployment uses [`Dockerfile`](Dockerfile) + [`railway.json`](railway.json) at the repo root, built on the Microsoft Playwright base image. Both files are kept in the repo so the Railway service keeps working as a fallback, but the Vercel migration is now the primary deployment path. Delete those two files when you're ready to commit fully to Vercel.
+
+### Docker (local)
+
+Build and run locally with Docker (matches the Railway production image):
 
 ```bash
-# Build the image
 docker build -t style-guide-generator .
-
-# Run the container
 docker run -p 3000:3000 style-guide-generator
 ```
 

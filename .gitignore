@@ -1,0 +1,23 @@
+# Build artifacts (Next.js builds inside style-guide-app/)
+.next/
+out/
+
+# Dependencies (the real ones live in style-guide-app/node_modules)
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local environment
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Claude Code local state — launch.json is per-machine
+.claude/

@@ -1,0 +1,6 @@
+# Don't ship the StyleSnap design extract or local dev artifacts
+.next
+node_modules
+*.log
+.DS_Store
+.env*.local

@@ -1,5 +1,31 @@
-import { chromium, Browser, Page } from 'playwright';
+import { chromium, type Browser, type Page } from 'playwright-core';
 import type { StyleGuideData, Color, TypeScaleItem } from '@/types/style-guide';
+
+// On Vercel (serverless) we use @sparticuz/chromium, a Lambda-compatible
+// Chromium build (~50 MB) that fits in a function bundle. Locally and on
+// Railway/Docker we use the full Playwright Chromium that comes with the
+// playwright base image or the dev install.
+async function launchBrowser(): Promise<Browser> {
+  const isServerless =
+    process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME !== undefined;
+
+  if (isServerless) {
+    const sparticuz = (await import('@sparticuz/chromium')).default;
+    return chromium.launch({
+      args: sparticuz.args,
+      executablePath: await sparticuz.executablePath(),
+      headless: true,
+    });
+  }
+
+  // Local / Docker: rely on a Chromium present on PATH or installed via
+  // `npx playwright install chromium`. PLAYWRIGHT_CHROMIUM_PATH is an escape
+  // hatch for the Microsoft Playwright Docker image used by Railway.
+  return chromium.launch({
+    headless: true,
+    executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH,
+  });
+}
 
 interface ExtractedStyles {
   colors: string[];
@@ -154,7 +180,7 @@ export async function analyzeWebsite(url: string): Promise<StyleGuideData> {
   let browser: Browser | null = null;
 
   try {
-    browser = await chromium.launch({ headless: true });
+    browser = await launchBrowser();
     const context = await browser.newContext({
       userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       viewport: { width: 1920, height: 1080 },
