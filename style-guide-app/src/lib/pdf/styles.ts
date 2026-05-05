@@ -1,284 +1,1170 @@
-import { StyleSheet } from '@react-pdf/renderer';
+import { StyleSheet, Font } from '@react-pdf/renderer';
+import path from 'node:path';
 
-// Use built-in Helvetica font to avoid network loading issues
-// Helvetica is available by default in @react-pdf/renderer
-const FONT_FAMILY = 'Helvetica';
-
-// Color palette matching the example PDF
-export const colors = {
-  // Primary blues
-  navyDark: '#021A2E',
-  navyMedium: '#014379',
-  bluePrimary: '#0D91FD',
-  blueLight: '#5DB5FE',
-  bluePale: '#C2E3FE',
-
-  // Text
-  textPrimary: '#374151',
-  textSecondary: '#6B7280',
-  textMuted: '#9CA3AF',
-
-  // Backgrounds
-  white: '#FFFFFF',
-  grayLight: '#F9FAFB',
-  grayBorder: '#E5E7EB',
-
-  // Table headers
-  tableHeaderBg: '#E8F4FD',
-  tableHeaderText: '#374151',
-
-  // System
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
+const PUBLIC_DIR = path.join(process.cwd(), 'public');
+export const ASSET_PATHS = {
+  logo: path.join(PUBLIC_DIR, 'brand', 'stylesnap-logo.png'),
 };
 
-// Main stylesheet
+let fontsRegistered = false;
+export function ensureFontsRegistered() {
+  if (fontsRegistered) return;
+  fontsRegistered = true;
+  Font.register({
+    family: 'Lato',
+    fonts: [
+      { src: path.join(PUBLIC_DIR, 'fonts', 'Lato-Light.ttf'), fontWeight: 300 },
+      { src: path.join(PUBLIC_DIR, 'fonts', 'Lato-Regular.ttf'), fontWeight: 400 },
+      { src: path.join(PUBLIC_DIR, 'fonts', 'Lato-Italic.ttf'), fontWeight: 400, fontStyle: 'italic' },
+      { src: path.join(PUBLIC_DIR, 'fonts', 'Lato-Bold.ttf'), fontWeight: 700 },
+      { src: path.join(PUBLIC_DIR, 'fonts', 'Lato-Black.ttf'), fontWeight: 900 },
+    ],
+  });
+  Font.registerHyphenationCallback((word) => [word]);
+}
+
+export const colors = {
+  surface0: '#FFFFFF',
+  surface1: '#F6FAFF',
+  surface2: '#EEF4FB',
+  surface3: '#E3EDF5',
+  surfaceBorder: '#DFE9F1',
+  surfaceBorderStrong: '#BEDEF9',
+
+  textPrimary: '#09090B',
+  textSecondary: '#52525B',
+  textTertiary: '#A1A1AA',
+
+  brand: '#2E9DF1',
+  brandHover: '#3E80B6',
+  brandSoft: '#C5DFF6',
+  brandDeep: '#2A5364',
+
+  success: '#16A34A',
+  successSoft: '#F0FDF4',
+  warning: '#D97706',
+  warningSoft: '#FFFBEB',
+  danger: '#DC2626',
+  dangerSoft: '#FEF2F2',
+};
+
+const FONT_SANS = 'Lato';
+const FONT_MONO = 'Courier';
+
 export const styles = StyleSheet.create({
-  // Page layout
   page: {
-    fontFamily: FONT_FAMILY,
-    fontSize: 11,
+    fontFamily: FONT_SANS,
+    fontSize: 10.5,
     color: colors.textPrimary,
-    backgroundColor: colors.white,
-    padding: 50,
-    paddingBottom: 70,
+    backgroundColor: colors.surface0,
+    paddingTop: 62,
+    paddingBottom: 68,
+    paddingHorizontal: 56,
+    lineHeight: 1.55,
   },
-
-  // Cover page
-  coverPage: {
-    fontFamily: FONT_FAMILY,
-    backgroundColor: colors.white,
-    padding: 50,
-    display: 'flex',
+  pageDark: {
+    fontFamily: FONT_SANS,
+    color: colors.surface0,
+    backgroundColor: colors.textPrimary,
+    paddingHorizontal: 68,
+    paddingVertical: 90,
     flexDirection: 'column',
-    height: '100%',
+    justifyContent: 'center',
   },
-  coverTitle: {
-    fontSize: 42,
-    fontWeight: 700,
-    color: colors.navyDark,
-    marginBottom: 8,
-  },
-  coverSubtitle: {
-    fontSize: 18,
-    color: colors.textSecondary,
-    marginBottom: 40,
-  },
-  coverColorBar: {
-    flexDirection: 'row',
-    marginBottom: 80,
-  },
-  coverColorSwatch: {
-    width: 80,
-    height: 40,
-  },
-  coverMeta: {
-    marginTop: 'auto',
-  },
-  coverMetaItem: {
-    flexDirection: 'row',
-    marginBottom: 4,
-  },
-  coverMetaLabel: {
-    fontSize: 11,
-    fontWeight: 600,
+  pageCover: {
+    fontFamily: FONT_SANS,
     color: colors.textPrimary,
-    width: 120,
-  },
-  coverMetaValue: {
-    fontSize: 11,
-    color: colors.textSecondary,
+    backgroundColor: colors.surface0,
+    padding: 0,
+    flexDirection: 'column',
   },
 
-  // Page footer
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 50,
-    right: 50,
+  runhead: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    fontSize: 10,
-    color: colors.textMuted,
-  },
-
-  // Section headings
-  sectionTitle: {
-    fontSize: 28,
-    fontWeight: 700,
-    color: colors.navyDark,
-    marginBottom: 4,
+    alignItems: 'center',
+    fontFamily: FONT_MONO,
+    fontSize: 8,
+    color: colors.textTertiary,
+    letterSpacing: 0.5,
+    marginBottom: 26,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: colors.grayBorder,
+    borderBottomColor: colors.surfaceBorder,
+  },
+  rhSection: {
+    color: colors.textSecondary,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+  },
+
+  sectionNum: {
+    fontFamily: FONT_MONO,
+    fontSize: 8.5,
+    color: colors.brand,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: 26,
+    fontWeight: 900,
+    letterSpacing: -0.6,
+    lineHeight: 1.05,
+    color: colors.textPrimary,
+    marginBottom: 12,
+    paddingBottom: 16,
+    borderBottomWidth: 2,
+    borderBottomColor: colors.textPrimary,
   },
   subsectionTitle: {
-    fontSize: 22,
-    fontWeight: 600,
-    color: colors.bluePrimary,
-    marginTop: 24,
-    marginBottom: 12,
+    fontSize: 16,
+    fontWeight: 900,
+    letterSpacing: -0.2,
+    color: colors.textPrimary,
+    marginTop: 22,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  ssn: {
+    fontFamily: FONT_MONO,
+    fontSize: 8.5,
+    fontWeight: 400,
+    color: colors.brand,
+    letterSpacing: 0.8,
+    marginRight: 10,
+  },
+  subsectionTitleText: {
+    fontSize: 16,
+    fontWeight: 900,
+    letterSpacing: -0.2,
+    color: colors.textPrimary,
   },
   subsubsectionTitle: {
-    fontSize: 14,
-    fontWeight: 600,
-    color: colors.bluePrimary,
+    fontSize: 9,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    color: colors.textSecondary,
     marginTop: 16,
     marginBottom: 8,
   },
 
-  // Paragraphs
   paragraph: {
-    fontSize: 11,
-    lineHeight: 1.6,
+    fontSize: 10,
+    fontWeight: 400,
+    lineHeight: 1.55,
     color: colors.textPrimary,
-    marginBottom: 12,
-    textAlign: 'justify',
+    marginBottom: 8,
+    textAlign: 'left',
+  },
+  lead: {
+    fontSize: 11,
+    fontWeight: 300,
+    color: colors.textSecondary,
+    lineHeight: 1.55,
+    marginBottom: 16,
+    maxWidth: '85%',
   },
   label: {
-    fontSize: 11,
-    fontWeight: 600,
+    fontSize: 8.5,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    color: colors.textSecondary,
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  mono: {
+    fontFamily: FONT_MONO,
+  },
+  muted: { color: colors.textTertiary },
+  dim: { color: colors.textSecondary },
+
+  // Footer
+  footer: {
+    position: 'absolute',
+    left: 56,
+    right: 56,
+    bottom: 32,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    fontFamily: FONT_MONO,
+    fontSize: 8,
+    color: colors.textTertiary,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceBorder,
+  },
+  footerBrand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  footerDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.brand,
+    marginRight: 6,
+  },
+  footerNum: {
+    letterSpacing: 0.5,
+  },
+
+  // Cover
+  coverTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingTop: 50,
+    paddingHorizontal: 50,
+    fontFamily: FONT_MONO,
+    fontSize: 8,
+    color: colors.textTertiary,
+    letterSpacing: 0.5,
+  },
+  coverLogo: {
+    width: 100,
+    height: 'auto',
+  },
+  coverStage: {
+    flex: 1,
+    paddingTop: 60,
+    paddingBottom: 12,
+    paddingHorizontal: 50,
+    flexDirection: 'column',
+    justifyContent: 'flex-end',
+    backgroundColor: colors.surface1,
+    position: 'relative',
+  },
+  coverEyebrow: {
+    fontFamily: FONT_MONO,
+    fontSize: 8.5,
+    color: colors.brandDeep,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    marginBottom: 22,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  coverEyebrowBadge: {
+    backgroundColor: colors.brandSoft,
+    color: colors.brandDeep,
+    fontFamily: FONT_SANS,
+    fontWeight: 900,
+    fontSize: 7.5,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 3,
+    letterSpacing: 0.4,
+    marginRight: 10,
+  },
+  coverTitle: {
+    fontSize: 44,
+    fontWeight: 900,
+    letterSpacing: -1.2,
+    lineHeight: 1.0,
     color: colors.textPrimary,
+    marginBottom: 6,
+  },
+  coverTitleAccent: {
+    fontSize: 44,
+    fontWeight: 900,
+    letterSpacing: -1.2,
+    lineHeight: 1.0,
+    color: colors.brand,
+  },
+  coverSubtitle: {
+    fontSize: 14,
+    fontWeight: 300,
+    color: colors.textSecondary,
+    lineHeight: 1.4,
+    marginBottom: 36,
+    maxWidth: '85%',
+  },
+  coverBottom: {
+    paddingHorizontal: 50,
+    paddingBottom: 50,
+    paddingTop: 0,
+    backgroundColor: colors.surface0,
+  },
+  coverColorBar: {
+    flexDirection: 'row',
+    height: 42,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 22,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  coverColorCell: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    padding: 8,
+  },
+  coverColorCellLabel: {
+    fontFamily: FONT_MONO,
+    fontSize: 7,
+    fontWeight: 500,
+    letterSpacing: 0.4,
+  },
+  coverMeta: {
+    flexDirection: 'row',
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceBorder,
+  },
+  coverMetaItem: {
+    flex: 1,
+    paddingRight: 16,
+  },
+  coverMetaLabel: {
+    fontFamily: FONT_MONO,
+    fontSize: 7.5,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    color: colors.textTertiary,
     marginBottom: 4,
+  },
+  coverMetaValue: {
+    fontFamily: FONT_SANS,
+    fontSize: 10,
+    fontWeight: 700,
+    color: colors.textPrimary,
+  },
+  coverMetaValueUrl: {
+    fontFamily: FONT_MONO,
+    fontWeight: 400,
+    color: colors.brand,
+  },
+
+  // Divider page
+  dividerLogo: {
+    width: 90,
+    marginBottom: 22,
+    opacity: 0.92,
+  },
+  dividerEyebrow: {
+    fontFamily: FONT_MONO,
+    fontSize: 9,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    color: colors.brand,
+    fontWeight: 400,
+    marginBottom: 16,
+  },
+  dividerTitle: {
+    fontSize: 60,
+    fontWeight: 900,
+    letterSpacing: -2.1,
+    lineHeight: 0.95,
+    color: colors.surface0,
+    marginBottom: 22,
+  },
+  dividerLead: {
+    fontSize: 14,
+    fontWeight: 300,
+    color: '#FFFFFFB3',
+    lineHeight: 1.5,
+    marginBottom: 0,
+    maxWidth: '80%',
+  },
+  dividerMeta: {
+    flexDirection: 'row',
+    marginTop: 40,
+    paddingTop: 18,
+    borderTopWidth: 1,
+    borderTopColor: '#FFFFFF30',
+  },
+  dividerMetaItem: {
+    marginRight: 36,
+  },
+  dividerMetaLabel: {
+    fontFamily: FONT_MONO,
+    fontSize: 8.5,
+    color: '#FFFFFF8C',
+    letterSpacing: 0.6,
+  },
+  dividerMetaValue: {
+    color: colors.surface0,
+    fontSize: 16,
+    fontWeight: 900,
+    letterSpacing: -0.2,
+    fontFamily: FONT_SANS,
+    marginTop: 5,
+  },
+
+  // TOC
+  tocList: { marginTop: 12 },
+  tocRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    paddingVertical: 7,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surfaceBorder,
+  },
+  tocRowMajor: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    paddingTop: 18,
+    paddingBottom: 7,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.textPrimary,
+  },
+  tocNum: {
+    fontFamily: FONT_MONO,
+    width: 42,
+    fontSize: 9,
+    color: colors.brand,
+    letterSpacing: 0.4,
+  },
+  tocNumMajor: {
+    fontFamily: FONT_SANS,
+    fontWeight: 900,
+    fontSize: 13,
+    color: colors.textPrimary,
+    width: 42,
+  },
+  tocTitle: {
+    width: 240,
+    fontWeight: 400,
+    fontSize: 11,
+    color: colors.textPrimary,
+  },
+  tocTitleSub: {
+    width: 240,
+    fontWeight: 400,
+    fontSize: 10.5,
+    color: colors.textSecondary,
+  },
+  tocTitleMajor: {
+    width: 240,
+    fontWeight: 900,
+    fontSize: 13,
+    color: colors.textPrimary,
+  },
+  tocDots: {
+    flex: 1,
+    color: colors.surfaceBorderStrong,
+    fontSize: 9,
+    letterSpacing: 2,
+    marginHorizontal: 8,
+    overflow: 'hidden',
+  },
+  tocPage: {
+    fontFamily: FONT_MONO,
+    fontSize: 9,
+    color: colors.textSecondary,
+    width: 26,
+    textAlign: 'right',
+  },
+
+  // Two-col
+  twoCol: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  twoColCell: {
+    flex: 1,
+    paddingRight: 22,
+  },
+  twoColCellLast: {
+    flex: 1,
+    paddingLeft: 0,
+  },
+
+  // Bullet list
+  bulletList: {
+    marginTop: 4,
+    marginBottom: 10,
+  },
+  bulletItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  bulletDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.brand,
+    marginTop: 6,
+    marginRight: 10,
+  },
+  bulletText: {
+    fontSize: 9.5,
+    color: colors.textPrimary,
+    lineHeight: 1.55,
+    flex: 1,
+  },
+
+  // Numbered list
+  numberedList: {
+    marginTop: 4,
+    marginBottom: 10,
+  },
+  numberedItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  numberedNum: {
+    width: 18,
+    fontFamily: FONT_MONO,
+    fontSize: 8,
+    color: colors.brand,
+    letterSpacing: 0.4,
+    marginTop: 1,
   },
 
   // Tables
   table: {
-    marginTop: 12,
-    marginBottom: 16,
+    marginTop: 8,
+    marginBottom: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.textPrimary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surfaceBorder,
+  },
+  tableHeaderRow: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface1,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surfaceBorderStrong,
+  },
+  tableHeaderCell: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 9,
+    fontSize: 8,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
+    color: colors.textSecondary,
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: colors.grayBorder,
+    borderBottomColor: colors.surfaceBorder,
   },
-  tableHeader: {
+  tableRowAlt: {
     flexDirection: 'row',
-    backgroundColor: colors.tableHeaderBg,
     borderBottomWidth: 1,
-    borderBottomColor: colors.grayBorder,
+    borderBottomColor: colors.surfaceBorder,
+    backgroundColor: colors.surface1,
   },
-  tableHeaderCell: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: colors.tableHeaderText,
-    padding: 8,
-    flex: 1,
+  tableRowLast: {
+    flexDirection: 'row',
+  },
+  tableRowAltLast: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface1,
   },
   tableCell: {
-    fontSize: 10,
-    color: colors.textPrimary,
-    padding: 8,
     flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 9,
+    fontSize: 9,
+    color: colors.textPrimary,
+    lineHeight: 1.45,
+  },
+  tableCellMono: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 9,
+    fontFamily: FONT_MONO,
+    fontSize: 8.5,
+    color: colors.textSecondary,
+    lineHeight: 1.45,
+  },
+  tableCellInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  colorChipInline: {
+    width: 12,
+    height: 12,
+    borderRadius: 2,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#0000001E',
   },
 
-  // Color swatches
-  colorSwatchContainer: {
+  // Color swatch grid
+  swatchGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 16,
-    marginBottom: 16,
-    gap: 8,
+    marginTop: 10,
+    marginBottom: 14,
   },
-  colorSwatch: {
-    width: 80,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  colorSwatchBox: {
-    width: 80,
-    height: 50,
+  swatch: {
+    flex: 1,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
     borderRadius: 4,
-    marginBottom: 6,
+    overflow: 'hidden',
+    backgroundColor: colors.surface0,
   },
-  colorSwatchHex: {
-    fontSize: 9,
-    fontWeight: 500,
+  swatchLast: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 4,
+    overflow: 'hidden',
+    backgroundColor: colors.surface0,
+  },
+  swatchChip: {
+    height: 110,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    padding: 10,
+  },
+  swatchChipLabel: {
+    fontFamily: FONT_MONO,
+    fontSize: 8,
+    backgroundColor: '#FFFFFFEB',
     color: colors.textPrimary,
+    paddingVertical: 2,
+    paddingHorizontal: 5,
+    borderRadius: 2,
   },
-  colorSwatchName: {
+  swatchChipLabelDark: {
+    fontFamily: FONT_MONO,
+    fontSize: 8,
+    backgroundColor: '#00000099',
+    color: '#FFFFFF',
+    paddingVertical: 2,
+    paddingHorizontal: 5,
+    borderRadius: 2,
+  },
+  swatchMeta: {
+    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceBorder,
+  },
+  swatchRole: {
+    fontFamily: FONT_MONO,
+    fontSize: 7.5,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    color: colors.textTertiary,
+    marginBottom: 3,
+  },
+  swatchName: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: colors.textPrimary,
+    marginBottom: 3,
+  },
+  swatchVals: {
+    fontFamily: FONT_MONO,
     fontSize: 8,
     color: colors.textSecondary,
-    textAlign: 'center',
+    lineHeight: 1.5,
   },
 
-  // Lists
-  bulletList: {
+  // Type specimen
+  specimen: {
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 6,
+    padding: 14,
+    marginBottom: 14,
+    backgroundColor: colors.surface1,
+  },
+  specMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    fontFamily: FONT_MONO,
+    fontSize: 8,
+    color: colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
+    marginBottom: 8,
+  },
+  specSampleHero: {
+    fontSize: 28,
+    fontWeight: 900,
+    letterSpacing: -0.4,
+    color: colors.textPrimary,
+    lineHeight: 1.05,
+  },
+  specSampleBody: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 10,
+    lineHeight: 1.4,
+  },
+  // Type scale row
+  typeScaleBox: {
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: colors.surface1,
+    marginBottom: 14,
+  },
+  typeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surfaceBorder,
+  },
+  typeRowLast: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  trLabel: {
+    fontFamily: FONT_MONO,
+    fontSize: 8,
+    color: colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
+    width: 60,
+  },
+  trSample: {
+    flex: 1,
+    color: colors.textPrimary,
+    letterSpacing: -0.2,
+  },
+  trMeta: {
+    fontFamily: FONT_MONO,
+    fontSize: 7.5,
+    color: colors.textSecondary,
+    textAlign: 'right',
+    width: 100,
+    lineHeight: 1.5,
+  },
+
+  // Buttons preview
+  btnPreviewRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: 16,
+    backgroundColor: colors.surface1,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 6,
+    marginVertical: 10,
+  },
+  btn: {
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    fontFamily: FONT_SANS,
+    fontSize: 9,
+    fontWeight: 700,
+    letterSpacing: -0.1,
+    marginRight: 8,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  btnPrimary: {
+    backgroundColor: colors.textPrimary,
+    color: colors.surface0,
+  },
+  btnSecondary: {
+    backgroundColor: 'transparent',
+    color: colors.textPrimary,
+    borderColor: colors.textPrimary,
+  },
+  btnTertiary: {
+    backgroundColor: 'transparent',
+    color: colors.textSecondary,
+  },
+  btnGhost: {
+    backgroundColor: colors.surface2,
+    color: colors.textPrimary,
+  },
+  btnDestructive: {
+    backgroundColor: colors.danger,
+    color: colors.surface0,
+  },
+  btnDisabled: {
+    backgroundColor: colors.surface2,
+    color: colors.textTertiary,
+  },
+  btnSm: { fontSize: 8, paddingVertical: 5, paddingHorizontal: 10 },
+  btnLg: { fontSize: 10, paddingVertical: 9, paddingHorizontal: 16 },
+
+  // Form preview
+  formPreview: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     marginTop: 8,
     marginBottom: 12,
   },
-  bulletItem: {
-    flexDirection: 'row',
-    marginBottom: 6,
-    paddingLeft: 8,
+  fpField: {
+    width: '48%',
+    marginRight: '2%',
+    marginBottom: 8,
+    backgroundColor: colors.surface1,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 6,
+    padding: 10,
   },
-  bulletPoint: {
-    width: 6,
-    fontSize: 11,
-    color: colors.textPrimary,
-    marginRight: 8,
+  fpLabel: {
+    fontFamily: FONT_MONO,
+    fontSize: 7,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    color: colors.textTertiary,
+    marginBottom: 5,
   },
-  bulletText: {
-    fontSize: 11,
-    color: colors.textPrimary,
-    flex: 1,
-    lineHeight: 1.5,
-  },
-
-  // Table of Contents
-  tocItem: {
-    flexDirection: 'row',
-    marginBottom: 12,
-  },
-  tocNumber: {
-    width: 40,
-    fontSize: 12,
-    fontWeight: 600,
-    color: colors.textPrimary,
-  },
-  tocTitle: {
-    fontSize: 12,
-    color: colors.textPrimary,
-  },
-
-  // Inline color box (for tables)
-  inlineColorBox: {
-    width: 24,
+  inputMock: {
     height: 24,
-    borderRadius: 2,
-    marginRight: 8,
-  },
-  colorTableCell: {
+    borderWidth: 1,
+    borderColor: colors.surfaceBorderStrong,
+    borderRadius: 4,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 8,
-    flex: 1,
+    paddingHorizontal: 8,
+    backgroundColor: colors.surface0,
+    fontSize: 9,
+    color: colors.textTertiary,
+  },
+  inputMockFocus: {
+    borderColor: colors.textPrimary,
+    borderWidth: 2,
+    color: colors.textPrimary,
+  },
+  inputMockError: {
+    borderColor: colors.danger,
+    color: colors.danger,
+  },
+  inputMockSuccess: {
+    borderColor: colors.success,
+    color: colors.textPrimary,
   },
 
-  // Design principles
+  // Card preview
+  cardPreview: {
+    width: 170,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 8,
+    padding: 14,
+    backgroundColor: colors.surface0,
+  },
+  cardCi: {
+    width: 32,
+    height: 32,
+    backgroundColor: colors.surface2,
+    borderRadius: 4,
+    marginBottom: 10,
+  },
+  cardCt: {
+    fontWeight: 700,
+    fontSize: 11,
+    marginBottom: 5,
+  },
+  cardCd: {
+    fontSize: 9,
+    color: colors.textSecondary,
+    lineHeight: 1.45,
+    marginBottom: 8,
+  },
+  cardPills: {
+    flexDirection: 'row',
+  },
+  cardPill: {
+    fontFamily: FONT_MONO,
+    fontSize: 7,
+    backgroundColor: colors.surface2,
+    color: colors.textSecondary,
+    paddingVertical: 1,
+    paddingHorizontal: 6,
+    borderRadius: 999,
+    marginRight: 4,
+  },
+
+  // Contrast pairs
+  contrastGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 8,
+    marginBottom: 14,
+  },
+  contrastCard: {
+    width: '48%',
+    marginRight: '2%',
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  contrastSwatch: {
+    padding: 16,
+  },
+  contrastLetters: {
+    fontSize: 18,
+    fontWeight: 900,
+    letterSpacing: -0.3,
+    lineHeight: 1.1,
+    marginBottom: 5,
+  },
+  contrastSmall: {
+    fontSize: 9,
+    fontWeight: 400,
+  },
+  contrastMetaBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface1,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceBorder,
+    fontFamily: FONT_MONO,
+    fontSize: 8,
+    color: colors.textSecondary,
+  },
+  contrastPass: {
+    backgroundColor: colors.successSoft,
+    color: colors.success,
+    fontWeight: 700,
+    paddingVertical: 1,
+    paddingHorizontal: 5,
+    borderRadius: 3,
+    fontSize: 7.5,
+    letterSpacing: 0.4,
+    marginLeft: 4,
+  },
+  contrastFail: {
+    backgroundColor: colors.dangerSoft,
+    color: colors.danger,
+    fontWeight: 700,
+    paddingVertical: 1,
+    paddingHorizontal: 5,
+    borderRadius: 3,
+    fontSize: 7.5,
+    letterSpacing: 0.4,
+    marginLeft: 4,
+  },
+
+  // Spacing scale
+  spacingBox: {
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 6,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    backgroundColor: colors.surface1,
+    marginVertical: 6,
+  },
+  spacingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surfaceBorder,
+  },
+  spacingRowLast: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 5,
+  },
+  spToken: {
+    fontFamily: FONT_MONO,
+    fontSize: 8.5,
+    color: colors.brand,
+    width: 70,
+  },
+  spBarWrap: { flex: 1, paddingRight: 16 },
+  spBar: {
+    backgroundColor: colors.brand,
+    height: 6,
+    borderRadius: 1.5,
+  },
+  spUse: {
+    fontFamily: FONT_MONO,
+    fontSize: 8.5,
+    color: colors.textSecondary,
+    width: 180,
+  },
+
+  // Callout
+  callout: {
+    borderLeftWidth: 3,
+    borderLeftColor: colors.brand,
+    backgroundColor: colors.surface1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
+    marginVertical: 10,
+  },
+  calloutText: {
+    fontSize: 10,
+    lineHeight: 1.55,
+    color: colors.textSecondary,
+  },
+  calloutStrong: {
+    color: colors.textPrimary,
+    fontWeight: 700,
+  },
+
+  // Principles
+  principles: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 6,
+  },
+  principle: {
+    width: '48%',
+    marginRight: '2%',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 6,
+    padding: 14,
+    backgroundColor: colors.surface0,
+  },
+  principleNum: {
+    fontFamily: FONT_MONO,
+    fontSize: 8,
+    color: colors.brand,
+    letterSpacing: 0.7,
+    marginBottom: 4,
+  },
   principleTitle: {
     fontSize: 12,
-    fontWeight: 600,
-    color: colors.bluePrimary,
+    fontWeight: 900,
+    letterSpacing: -0.1,
+    color: colors.textPrimary,
     marginBottom: 4,
   },
-  principleDescription: {
-    fontSize: 11,
-    color: colors.textPrimary,
+  principleDesc: {
+    fontSize: 9,
     lineHeight: 1.5,
-    marginBottom: 16,
+    color: colors.textSecondary,
   },
 
-  // Accessibility checkmark
-  checkRow: {
+  // Color usage bar
+  usageBar: {
+    flexDirection: 'row',
+    height: 60,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  usageCell: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    padding: 10,
+    fontFamily: FONT_MONO,
+    fontSize: 8,
+    fontWeight: 700,
+    letterSpacing: 0.4,
+  },
+
+  // Navigation mock
+  navMock: {
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 6,
+    overflow: 'hidden',
+    marginVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    backgroundColor: colors.surface0,
+  },
+  navBrand: {
+    fontWeight: 900,
+    fontSize: 13,
+    letterSpacing: -0.2,
+  },
+  navLinks: {
+    flexDirection: 'row',
+  },
+  navLink: {
+    fontSize: 9,
+    color: colors.textSecondary,
+    marginHorizontal: 7,
+  },
+  navLinkActive: {
+    fontSize: 9,
+    color: colors.textPrimary,
+    fontWeight: 700,
+    marginHorizontal: 7,
+  },
+  navSearch: {
+    width: 90,
+    height: 22,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 3,
+    paddingHorizontal: 8,
+    fontFamily: FONT_MONO,
+    fontSize: 7.5,
+    color: colors.textTertiary,
+    marginRight: 8,
+  },
+
+  // End-of-doc footer
+  endNote: {
+    marginTop: 24,
+    paddingTop: 18,
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceBorder,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  endLabel: {
+    fontFamily: FONT_MONO,
+    fontSize: 7,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    color: colors.textTertiary,
     marginBottom: 4,
   },
-  checkmark: {
-    fontSize: 10,
-    color: colors.success,
-    marginRight: 8,
+  endTitle: {
+    fontWeight: 900,
+    fontSize: 16,
+    letterSpacing: -0.2,
+  },
+  endRight: {
+    fontFamily: FONT_MONO,
+    fontSize: 8,
+    color: colors.textTertiary,
+    textAlign: 'right',
+    lineHeight: 1.55,
+  },
+
+  // Icon grid
+  iconGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 6,
+    backgroundColor: colors.surface1,
+    padding: 12,
+  },
+  iconCell: {
+    width: '23%',
+    aspectRatio: 1,
+    backgroundColor: colors.surface0,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: 4,
+    margin: '1%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
