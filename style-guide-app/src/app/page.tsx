@@ -166,22 +166,21 @@ export default function Home() {
       {/* Header */}
       <header className="ss-header">
         <div className="ss-header-inner">
-          <a href="https://s3labs.tech" className="ss-brand-link" aria-label="S3 Labs">
+          <a href="#" className="ss-brand-link" aria-label="StyleSnap">
             <Image
-              src="/brand/s3labs-logo.png"
-              alt="S3 Labs"
-              width={130}
-              height={50}
+              src="/brand/stylesnap-logo.png"
+              alt="StyleSnap"
+              width={1159}
+              height={307}
               className="ss-brand-logo"
               priority
-              style={{ height: 50, width: 130, objectFit: 'contain' }}
             />
           </a>
           <nav className="ss-nav">
             <a className="nav-link" href="#features">Features</a>
             <a className="nav-link" href="#how">How it works</a>
             <a className="nav-link" href="#faq">FAQ</a>
-            <span className="ss-meta">
+            <span className="ss-meta" style={{ color: 'rgb(197, 223, 246)' }}>
               v1.0<span className="dot">·</span>by s3 labs
             </span>
           </nav>
@@ -196,7 +195,8 @@ export default function Home() {
             a tiny utility from s3 labs
           </div>
           <h1 className="hero-h1">
-            Create professional style guides.{' '}
+            Create professional style guides.
+            <br />
             <span className="muted">In just seconds.</span>
           </h1>
           <p className="hero-lead">
@@ -389,17 +389,19 @@ export default function Home() {
         <div className="ss-container">
           <div className="footer-grid">
             <div className="footer-brand">
-              <Image
-                src="/brand/s3labs-logo.png"
-                alt="S3 Labs"
-                width={130}
-                height={50}
-                className="ss-brand-logo"
-                style={{ height: 50, width: 130, objectFit: 'contain' }}
-              />
+              <a href="#" className="ss-brand-link" aria-label="StyleSnap">
+                <Image
+                  src="/brand/stylesnap-logo-footer.png"
+                  alt="StyleSnap"
+                  width={1822}
+                  height={1009}
+                  className="ss-brand-logo"
+                  style={{ objectFit: 'contain', height: 110, width: 140 }}
+                />
+              </a>
               <p className="footer-tagline">
                 A tiny utility from S3 Labs. One URL in, one printable style guide out.
-                No subscriptions, no ads, no AI branding.
+                No subscriptions or ads.
               </p>
             </div>
             <div className="footer-col">
@@ -419,21 +421,16 @@ export default function Home() {
                 <li><a href="https://dropdoc.sh">DropDoc</a></li>
               </ul>
             </div>
-            <div className="footer-col">
-              <h4>legal</h4>
-              <ul>
-                <li><a href="#">Terms</a></li>
-                <li><a href="#">Privacy</a></li>
-                <li><a href="#">Acceptable use</a></li>
-              </ul>
-            </div>
           </div>
           <div className="footer-bottom">
             <span>© {new Date().getFullYear()} S3 Labs</span>
             <span>
               Made with{' '}
               <span aria-label="love" style={{ color: 'var(--mark-red)' }}>❤</span>{' '}
-              by Tom &amp; Alex from S3 Labs
+              <span style={{ color: '#71717a' }}>
+                by Tom &amp; Alex from{' '}
+                <span style={{ color: '#2e9df0' }}>S3 Labs</span>
+              </span>
             </span>
           </div>
         </div>
