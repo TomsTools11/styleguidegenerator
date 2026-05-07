@@ -4,6 +4,7 @@ import path from 'node:path';
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
 export const ASSET_PATHS = {
   logo: path.join(PUBLIC_DIR, 'brand', 'stylesnap-logo.png'),
+  logoLight: path.join(PUBLIC_DIR, 'brand', 'stylesnap-logo-light.png'),
 };
 
 let fontsRegistered = false;

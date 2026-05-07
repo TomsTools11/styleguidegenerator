@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
       './public/fonts/Lato-Bold.ttf',
       './public/fonts/Lato-Black.ttf',
       './public/brand/stylesnap-logo.png',
+      './public/brand/stylesnap-logo-light.png',
     ],
   },
 };

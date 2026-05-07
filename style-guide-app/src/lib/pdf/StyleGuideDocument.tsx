@@ -366,7 +366,7 @@ const DividerPage = ({
   meta: Array<{ label: string; value: string }>;
 }) => (
   <Page size="A4" style={styles.pageDark}>
-    <Image style={styles.dividerLogo} src={ASSET_PATHS.logo} />
+    <Image style={styles.dividerLogo} src={ASSET_PATHS.logoLight} />
     <Text style={styles.dividerEyebrow}>
       Part {part} · {eyebrow}
     </Text>
