@@ -168,7 +168,7 @@ export default function Home() {
         <div className="ss-header-inner">
           <a href="#" className="ss-brand-link" aria-label="StyleSnap">
             <Image
-              src="/brand/stylesnap-logo.png"
+              src="/brand/stylesnap-logo-nav.png"
               alt="StyleSnap"
               width={1159}
               height={307}
