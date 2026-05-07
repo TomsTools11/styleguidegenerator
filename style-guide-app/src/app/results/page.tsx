@@ -1,23 +1,46 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import Image from 'next/image';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   Download,
   ArrowLeft,
-  Sparkles,
   Palette,
   Type,
   Layout,
   FileText,
-  CheckCircle2,
+  Check,
   ExternalLink,
   RefreshCw,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
-import type { StyleGuideData } from '@/types/style-guide';
+import type { StyleGuideData, Color } from '@/types/style-guide';
+
+const TOC: [string, string, string][] = [
+  ['01', 'Cover & introduction', '01'],
+  ['02', 'Brand identity',       '03'],
+  ['03', 'Color palette',        '05'],
+  ['04', 'Typography system',    '08'],
+  ['05', 'UI components',        '11'],
+  ['06', 'Layout & grid',        '13'],
+  ['07', 'Accessibility',        '15'],
+];
+
+const INCLUDED = [
+  'Cover page & table of contents',
+  'Brand identity guidelines',
+  'Color palette with hex / RGB / HSL',
+  'Typography specifications',
+  'UI component library',
+  'Layout & grid system',
+  'Accessibility report',
+  'Resource links',
+];
+
+const TOTAL_PDF_PAGES = 19;
 
 function ResultsContent() {
   const router = useRouter();
@@ -29,17 +52,15 @@ function ResultsContent() {
   const [styleGuideData, setStyleGuideData] = useState<StyleGuideData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [page, setPage] = useState(0); // 0 = cover, 1 = TOC
+  const [copied, setCopied] = useState<string | null>(null);
+
   useEffect(() => {
     if (!urlParam) {
       setError('No URL provided');
       setIsLoading(false);
       return;
     }
-
-    // The processing page stashes the full StyleGuideData in sessionStorage
-    // keyed by URL. Pulling it from there avoids a second network round-trip
-    // and sidesteps the in-memory job store, which can't be shared across
-    // serverless function instances on Vercel.
     try {
       const cached = sessionStorage.getItem(`stylesnap:${urlParam}`);
       if (cached) {
@@ -50,15 +71,48 @@ function ResultsContent() {
         );
       }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to load results',
-      );
+      setError(err instanceof Error ? err.message : 'Failed to load results');
     } finally {
       setIsLoading(false);
     }
   }, [urlParam]);
 
+  const allColors = useMemo<Color[]>(() => {
+    if (!styleGuideData) return [];
+    return [
+      ...(styleGuideData.colors.primary || []),
+      ...(styleGuideData.colors.secondary || []),
+      ...(styleGuideData.colors.text || []),
+      ...(styleGuideData.colors.background || []),
+    ];
+  }, [styleGuideData]);
+
+  const stats = useMemo(() => {
+    if (!styleGuideData) return null;
+    const colorCount =
+      (styleGuideData.colors.primary?.length || 0) +
+      (styleGuideData.colors.secondary?.length || 0) +
+      Object.values(styleGuideData.colors.system || {}).filter(Boolean).length;
+    const typeFaces = [
+      styleGuideData.typography.primaryFont,
+      styleGuideData.typography.secondaryFont,
+      styleGuideData.typography.monospaceFont,
+    ].filter(Boolean).length;
+    const components =
+      (styleGuideData.uiComponents.buttons?.variants?.length || 0) +
+      (styleGuideData.uiComponents.cards?.length || 0) +
+      (styleGuideData.uiComponents.forms?.length || 0) +
+      (styleGuideData.uiComponents.navigation?.length || 0);
+    return [
+      { num: colorCount, label: 'Colors', Icon: Palette },
+      { num: typeFaces, label: 'Type faces', Icon: Type },
+      { num: components, label: 'Components', Icon: Layout },
+      { num: TOTAL_PDF_PAGES, label: 'Pages', Icon: FileText },
+    ];
+  }, [styleGuideData]);
+
   const handleDownload = async () => {
+    if (!styleGuideData) return;
     setIsDownloading(true);
     try {
       const response = await fetch('/api/generate-pdf', {
@@ -66,14 +120,12 @@ function ResultsContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: styleGuideData }),
       });
-
       if (!response.ok) throw new Error('Failed to generate PDF');
-
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${styleGuideData?.meta.domain || 'style-guide'}-style-guide.pdf`;
+      a.download = `${styleGuideData.meta.domain || 'style-guide'}-style-guide.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -85,340 +137,492 @@ function ResultsContent() {
     }
   };
 
+  const copyHex = async (hex: string) => {
+    try {
+      await navigator.clipboard?.writeText(hex);
+    } catch {
+      // ignore — visual feedback still fires
+    }
+    setCopied(hex);
+    setTimeout(() => setCopied(null), 1400);
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#191919] flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-[#407EC9] animate-spin mx-auto mb-4" />
-          <p className="text-[#A7A39A]">Loading your style guide...</p>
+      <main
+        className="ss-main"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '60vh',
+        }}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <Loader2
+            className="spin"
+            size={32}
+            color="var(--brand)"
+            style={{ display: 'block', margin: '0 auto 12px' }}
+          />
+          <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
+            Loading your style guide…
+          </p>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#191919] flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="w-16 h-16 rounded-full bg-[#D44E49]/10 flex items-center justify-center mx-auto mb-4">
-            <FileText className="w-8 h-8 text-[#D44E49]" />
+      <>
+        <header className="ss-header">
+          <div className="ss-header-inner">
+            <a href="/" className="ss-brand-link" aria-label="StyleSnap">
+              <Image
+                src="/brand/stylesnap-logo.png"
+                alt="StyleSnap"
+                width={1159}
+                height={307}
+                className="ss-brand-logo"
+                priority
+              />
+            </a>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
-            Unable to Load Results
-          </h1>
-          <p className="text-[#A7A39A] mb-6">{error}</p>
-          <Button
-            onClick={() => router.push('/')}
-            className="bg-[#407EC9] hover:bg-[#327DA9] text-white"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Try Another URL
-          </Button>
-        </div>
-      </div>
+        </header>
+        <main className="ss-main">
+          <div className="ss-narrow" style={{ paddingTop: 80, textAlign: 'center' }}>
+            <div
+              className="out-checkmark"
+              style={{
+                background: 'rgba(220,38,38,0.12)',
+                borderColor: 'rgba(220,38,38,0.4)',
+                color: 'var(--danger)',
+              }}
+            >
+              <FileText size={28} strokeWidth={2.2} />
+            </div>
+            <h1 className="out-h1">Unable to load results</h1>
+            <p className="out-sub">{error}</p>
+            <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={() => router.push('/')}
+                className="ss-btn ss-btn-primary ss-btn-auto"
+              >
+                <ArrowLeft size={16} /> Try another URL
+              </button>
+            </div>
+          </div>
+        </main>
+      </>
     );
   }
 
-  if (!styleGuideData) return null;
+  if (!styleGuideData || !stats) return null;
 
-  const stats = [
-    {
-      icon: Palette,
-      label: 'Colors',
-      value: (styleGuideData.colors.primary?.length || 0) +
-             (styleGuideData.colors.secondary?.length || 0) +
-             (styleGuideData.colors.text?.length || 0),
-    },
-    {
-      icon: Type,
-      label: 'Font Families',
-      value: [styleGuideData.typography.primaryFont, styleGuideData.typography.secondaryFont, styleGuideData.typography.monospaceFont].filter(Boolean).length,
-    },
-    {
-      icon: Layout,
-      label: 'Components',
-      value: (styleGuideData.uiComponents.buttons?.variants?.length || 0) +
-             (styleGuideData.uiComponents.cards?.length || 0) +
-             (styleGuideData.uiComponents.forms?.length || 0),
-    },
-    {
-      icon: FileText,
-      label: 'Pages',
-      value: 19,
-    },
-  ];
+  const generatedDate = new Date(styleGuideData.meta.analyzedAt).toLocaleDateString(
+    'en-US',
+    { year: 'numeric', month: 'short', day: 'numeric' },
+  );
 
   return (
-    <div className="min-h-screen bg-[#191919]">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#407EC9] flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-semibold text-lg text-white" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
-              Style Guide Generator
-            </span>
-          </div>
-          <Button
-            variant="ghost"
-            onClick={() => router.push('/')}
-            className="text-[#A7A39A] hover:text-white"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            New Analysis
-          </Button>
+    <>
+      <header className="ss-header">
+        <div className="ss-header-inner">
+          <a href="/" className="ss-brand-link" aria-label="StyleSnap">
+            <Image
+              src="/brand/stylesnap-logo.png"
+              alt="StyleSnap"
+              width={1159}
+              height={307}
+              className="ss-brand-logo"
+              priority
+            />
+          </a>
+          <a href="/" className="ss-link-btn">
+            <RefreshCw size={14} />
+            New analysis
+          </a>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="pt-24 pb-12">
-        <div className="max-w-6xl mx-auto px-6">
-          {/* Success Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#448361]/10 mb-6">
-              <CheckCircle2 className="w-8 h-8 text-[#448361]" />
-            </div>
-            <h1
-              className="text-3xl md:text-4xl font-bold mb-4 text-white"
-              style={{ fontFamily: "'Red Hat Display', sans-serif" }}
-            >
-              Your Style Guide is Ready!
+      <main className="ss-main" style={{ paddingBottom: 80 }}>
+        <div className="ss-container">
+          {/* Hero */}
+          <section className="out-hero">
+            <span className="out-checkmark">
+              <Check size={28} strokeWidth={2.5} />
+            </span>
+            <h1 className="out-h1">
+              Your style guide <span className="accent">is ready</span>
             </h1>
-            <p className="text-[#A7A39A] text-lg max-w-xl mx-auto">
-              We've analyzed {styleGuideData.meta.domain} and created a comprehensive
-              19-page style guide document.
+            <p className="out-sub">
+              We&rsquo;ve analyzed{' '}
+              <span className="mono">{styleGuideData.meta.domain}</span> and built
+              a comprehensive {TOTAL_PDF_PAGES}-page style guide document.
             </p>
-          </div>
+          </section>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {stats.map((stat) => (
-              <Card key={stat.label} className="bg-[#202020] border-[#444B4E]">
-                <CardContent className="p-6 text-center">
-                  <div className="w-10 h-10 rounded-xl bg-[#407EC9]/10 flex items-center justify-center mx-auto mb-3">
-                    <stat.icon className="w-5 h-5 text-[#407EC9]" />
-                  </div>
-                  <p className="text-3xl font-bold text-white mb-1" style={{ fontFamily: "'Red Hat Display', sans-serif" }}>
-                    {stat.value}
-                  </p>
-                  <p className="text-sm text-[#A7A39A]">{stat.label}</p>
-                </CardContent>
-              </Card>
+          {/* Stats */}
+          <section className="out-stats">
+            {stats.map((s) => (
+              <div key={s.label} className="stat-tile">
+                <span className="stat-tile-icon">
+                  <s.Icon size={16} />
+                </span>
+                <div className="stat-tile-num">{s.num}</div>
+                <div className="stat-tile-label">{s.label}</div>
+              </div>
             ))}
-          </div>
+          </section>
 
-          {/* Main Content Grid */}
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* PDF Preview */}
-            <div className="lg:col-span-2">
-              <Card className="bg-[#202020] border-[#444B4E] overflow-hidden">
-                <CardContent className="p-0">
-                  {/* Preview Header */}
-                  <div className="p-4 border-b border-[#444B4E] flex items-center justify-between">
-                    <span className="text-[#EDEEEE] font-medium">PDF Preview</span>
-                    <span className="text-sm text-[#A7A39A]">19 pages</span>
-                  </div>
-
-                  {/* Mock Preview */}
-                  <div className="p-8 bg-[#191919]">
-                    <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md mx-auto aspect-[3/4]">
-                      {/* Cover Page Mock */}
-                      <div className="h-full flex flex-col">
-                        <h2
-                          className="text-2xl font-bold text-[#021A2E] mb-2"
-                          style={{ fontFamily: "'Red Hat Display', sans-serif" }}
-                        >
-                          {styleGuideData.brand.name}
-                        </h2>
-                        <p className="text-gray-500 text-sm mb-8">Brand & Design Style Guide</p>
-
-                        {/* Color swatches */}
-                        <div className="flex gap-2 mb-8">
-                          {styleGuideData.colors.primary?.slice(0, 5).map((color, i) => (
-                            <div
-                              key={i}
-                              className="w-12 h-8 rounded"
-                              style={{ backgroundColor: color.hex }}
-                            />
-                          ))}
-                        </div>
-
-                        <div className="mt-auto text-sm text-gray-500">
-                          <p><strong>Version:</strong> {styleGuideData.meta.version}</p>
-                          <p><strong>Generated:</strong> {new Date(styleGuideData.meta.analyzedAt).toLocaleDateString()}</p>
-                          <p><strong>Source:</strong> {styleGuideData.meta.domain}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          {/* Two-column: PDF preview + side */}
+          <section className="out-grid">
+            <div className="ss-card">
+              <div className="ss-card-head">
+                <span className="ss-card-h">
+                  <span className="dot" />
+                  PDF preview
+                </span>
+                <span className="ss-card-meta">
+                  {TOTAL_PDF_PAGES} pages · A4
+                </span>
+              </div>
+              <div className="pdf-stage">
+                {page === 0 ? (
+                  <PdfCover
+                    title={styleGuideData.brand.name}
+                    domain={styleGuideData.meta.domain}
+                    version={styleGuideData.meta.version}
+                    generatedDate={generatedDate}
+                    swatches={(styleGuideData.colors.primary || []).slice(0, 3)}
+                  />
+                ) : (
+                  <PdfTOC domain={styleGuideData.meta.domain} />
+                )}
+              </div>
+              <div className="pdf-pager">
+                <button
+                  type="button"
+                  className="pdf-pager-btn"
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <span className="pdf-pager-pos">
+                  {String(page + 1).padStart(2, '0')} / {TOTAL_PDF_PAGES}
+                </span>
+                <button
+                  type="button"
+                  className="pdf-pager-btn"
+                  onClick={() => setPage((p) => Math.min(1, p + 1))}
+                  disabled={page === 1}
+                  aria-label="Next page"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
             </div>
 
-            {/* Action Panel */}
-            <div className="space-y-6">
-              {/* Download Card */}
-              <Card className="bg-[#202020] border-[#444B4E]">
-                <CardContent className="p-6">
-                  <h3
-                    className="text-lg font-semibold text-white mb-4"
-                    style={{ fontFamily: "'Red Hat Display', sans-serif" }}
+            <div className="side-stack">
+              <div className="ss-card">
+                <div className="ss-card-body">
+                  <div className="ss-card-h" style={{ marginBottom: 8 }}>
+                    Download
+                  </div>
+                  <p
+                    style={{
+                      margin: '0 0 16px',
+                      fontSize: 13.5,
+                      color: 'var(--text-tertiary)',
+                      lineHeight: 1.55,
+                    }}
                   >
-                    Download Style Guide
-                  </h3>
-                  <p className="text-[#A7A39A] text-sm mb-6">
-                    Get your professionally formatted PDF style guide, ready to share
-                    with your team.
+                    Get your professionally formatted PDF style guide, ready to
+                    share with your team.
                   </p>
-                  <Button
+                  <button
+                    type="button"
+                    className="ss-btn ss-btn-primary"
                     onClick={handleDownload}
                     disabled={isDownloading}
-                    className="w-full h-12 bg-[#407EC9] hover:bg-[#327DA9] text-white font-semibold"
                   >
                     {isDownloading ? (
                       <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Generating PDF...
+                        <Loader2 size={14} className="spin" />
+                        Preparing…
                       </>
                     ) : (
                       <>
-                        <Download className="w-5 h-5 mr-2" />
+                        <Download size={16} />
                         Download PDF
                       </>
                     )}
-                  </Button>
-                </CardContent>
-              </Card>
+                  </button>
+                  <div className="dl-summary">
+                    <span>
+                      {styleGuideData.meta.domain || 'style-guide'}-style-guide.pdf
+                    </span>
+                    <span>PDF · A4</span>
+                  </div>
+                </div>
+              </div>
 
-              {/* What's Included */}
-              <Card className="bg-[#202020] border-[#444B4E]">
-                <CardContent className="p-6">
-                  <h3
-                    className="text-lg font-semibold text-white mb-4"
-                    style={{ fontFamily: "'Red Hat Display', sans-serif" }}
-                  >
-                    What's Included
-                  </h3>
-                  <ul className="space-y-3">
-                    {[
-                      'Cover page & table of contents',
-                      'Brand identity guidelines',
-                      'Color palette with values',
-                      'Typography specifications',
-                      'UI component library',
-                      'Layout & grid system',
-                      'Accessibility report',
-                      'Resource links',
-                    ].map((item) => (
-                      <li key={item} className="flex items-center gap-3 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-[#448361] flex-shrink-0" />
-                        <span className="text-[#EDEEEE]">{item}</span>
+              <div className="ss-card">
+                <div className="ss-card-body">
+                  <div className="ss-card-h" style={{ marginBottom: 14 }}>
+                    What&rsquo;s included
+                  </div>
+                  <ul className="included-list">
+                    {INCLUDED.map((item) => (
+                      <li key={item}>
+                        <span className="ic-check">
+                          <Check size={11} strokeWidth={2.4} />
+                        </span>
+                        {item}
                       </li>
                     ))}
                   </ul>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              {/* Source Link */}
-              <Card className="bg-[#202020] border-[#444B4E]">
-                <CardContent className="p-6">
-                  <h3
-                    className="text-lg font-semibold text-white mb-4"
-                    style={{ fontFamily: "'Red Hat Display', sans-serif" }}
-                  >
-                    Source Website
-                  </h3>
-                  <a
-                    href={styleGuideData.meta.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-[#407EC9] hover:text-[#5DB5FE] transition-colors"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    <span className="truncate">{styleGuideData.meta.domain}</span>
-                  </a>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* Color Preview */}
-          <Card className="bg-[#202020] border-[#444B4E] mt-8">
-            <CardContent className="p-6">
-              <h3
-                className="text-lg font-semibold text-white mb-6"
-                style={{ fontFamily: "'Red Hat Display', sans-serif" }}
-              >
-                Extracted Color Palette
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-4">
-                {[
-                  ...(styleGuideData.colors.primary || []),
-                  ...(styleGuideData.colors.secondary || []),
-                  ...(styleGuideData.colors.text || []),
-                  ...(styleGuideData.colors.background || []),
-                ].slice(0, 10).map((color, index) => (
-                  <div key={index} className="text-center">
-                    <div
-                      className="w-full aspect-square rounded-lg mb-2 border border-[#444B4E]"
-                      style={{ backgroundColor: color.hex }}
-                    />
-                    <p className="text-xs text-[#EDEEEE] font-mono">{color.hex}</p>
-                    <p className="text-xs text-[#A7A39A] truncate">{color.name}</p>
+              <div className="ss-card">
+                <div className="ss-card-body">
+                  <div className="ss-card-h" style={{ marginBottom: 12 }}>
+                    Source
                   </div>
+                  <div className="source-row">
+                    <span className="glo">
+                      <ExternalLink size={14} />
+                    </span>
+                    <a
+                      href={styleGuideData.meta.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {styleGuideData.meta.domain}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Color palette */}
+          <section className="ss-card" style={{ marginTop: 20 }}>
+            <div className="ss-card-head">
+              <span className="ss-card-h">
+                <span className="dot" />
+                Extracted color palette
+              </span>
+              <span className="ss-card-meta">
+                {allColors.length} tokens · click to copy
+              </span>
+            </div>
+            <div className="ss-card-body">
+              <div className="palette-grid">
+                {allColors.slice(0, 10).map((color) => (
+                  <button
+                    key={`${color.hex}-${color.name}`}
+                    type="button"
+                    className="palette-cell"
+                    onClick={() => copyHex(color.hex)}
+                  >
+                    <span
+                      className="palette-swatch"
+                      style={{ background: color.hex }}
+                    >
+                      <span className="copy">
+                        {copied === color.hex ? 'Copied' : 'Copy hex'}
+                      </span>
+                    </span>
+                    <span className="palette-meta">
+                      <span className="palette-hex">{color.hex}</span>
+                      <span className="palette-name">{color.name}</span>
+                    </span>
+                  </button>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </section>
 
-          {/* Typography Preview */}
-          <Card className="bg-[#202020] border-[#444B4E] mt-8">
-            <CardContent className="p-6">
-              <h3
-                className="text-lg font-semibold text-white mb-6"
-                style={{ fontFamily: "'Red Hat Display', sans-serif" }}
-              >
-                Typography System
-              </h3>
-              <div className="grid md:grid-cols-2 gap-8">
-                <div>
-                  <h4 className="text-sm text-[#A7A39A] mb-3">Primary Font</h4>
-                  <p className="text-2xl text-white mb-1" style={{ fontFamily: styleGuideData.typography.primaryFont?.name }}>
+          {/* Typography */}
+          <section className="ss-card" style={{ marginTop: 20 }}>
+            <div className="ss-card-head">
+              <span className="ss-card-h">
+                <span className="dot" />
+                Typography system
+              </span>
+              <span className="ss-card-meta">
+                {[
+                  styleGuideData.typography.primaryFont,
+                  styleGuideData.typography.secondaryFont,
+                  styleGuideData.typography.monospaceFont,
+                ].filter(Boolean).length}{' '}
+                families
+              </span>
+            </div>
+            <div className="ss-card-body">
+              <div className="type-grid">
+                <div className="type-cell">
+                  <div className="type-eyebrow">Primary · headings &amp; body</div>
+                  <div
+                    className="type-name"
+                    style={{
+                      fontFamily: styleGuideData.typography.primaryFont?.name,
+                    }}
+                  >
                     {styleGuideData.typography.primaryFont?.name || 'Inter'}
-                  </p>
-                  <p className="text-sm text-[#A7A39A]">
-                    {styleGuideData.typography.primaryFont?.fallback || 'system-ui, sans-serif'}
-                  </p>
+                  </div>
+                  <div className="type-stack">
+                    {styleGuideData.typography.primaryFont?.fallback ||
+                      'system-ui, sans-serif'}
+                  </div>
                 </div>
-                {styleGuideData.typography.secondaryFont && (
-                  <div>
-                    <h4 className="text-sm text-[#A7A39A] mb-3">Secondary Font</h4>
-                    <p className="text-2xl text-white mb-1" style={{ fontFamily: styleGuideData.typography.secondaryFont.name }}>
-                      {styleGuideData.typography.secondaryFont.name}
-                    </p>
-                    <p className="text-sm text-[#A7A39A]">
-                      {styleGuideData.typography.secondaryFont.fallback}
-                    </p>
+                {(styleGuideData.typography.secondaryFont ||
+                  styleGuideData.typography.monospaceFont) && (
+                  <div className="type-cell">
+                    <div className="type-eyebrow">
+                      {styleGuideData.typography.monospaceFont
+                        ? 'Mono · code & identifiers'
+                        : 'Secondary · accents'}
+                    </div>
+                    <div
+                      className="type-name"
+                      style={{
+                        fontFamily:
+                          styleGuideData.typography.monospaceFont?.name ??
+                          styleGuideData.typography.secondaryFont?.name,
+                      }}
+                    >
+                      {styleGuideData.typography.monospaceFont?.name ??
+                        styleGuideData.typography.secondaryFont?.name}
+                    </div>
+                    <div className="type-stack">
+                      {styleGuideData.typography.monospaceFont?.fallback ??
+                        styleGuideData.typography.secondaryFont?.fallback}
+                    </div>
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </section>
+
+          <div className="out-nav-row">
+            <button
+              type="button"
+              onClick={() => router.push('/')}
+              className="ss-btn ss-btn-ghost ss-btn-auto"
+            >
+              <RefreshCw size={14} /> Run another
+            </button>
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={isDownloading}
+              className="ss-btn ss-btn-primary ss-btn-auto"
+            >
+              {isDownloading ? (
+                <>
+                  <Loader2 size={14} className="spin" /> Preparing…
+                </>
+              ) : (
+                <>
+                  <Download size={16} /> Download PDF
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </main>
+    </>
+  );
+}
+
+function PdfCover({
+  title,
+  domain,
+  version,
+  generatedDate,
+  swatches,
+}: {
+  title: string;
+  domain: string;
+  version: string;
+  generatedDate: string;
+  swatches: Color[];
+}) {
+  return (
+    <div className="pdf-page">
+      <h2 className="pdf-cover-title">{title}</h2>
+      <p className="pdf-cover-sub">Brand &amp; design style guide</p>
+      <div className="pdf-cover-swatches">
+        {swatches.length === 0
+          ? ['#212529', '#057BE5', '#00172D'].map((hex) => (
+              <span key={hex} className="sw" style={{ background: hex }} />
+            ))
+          : swatches.map((c) => (
+              <span
+                key={c.hex}
+                className="sw"
+                style={{ background: c.hex }}
+              />
+            ))}
+      </div>
+      <div className="pdf-cover-rule" />
+      <div style={{ flex: 1 }} />
+      <div className="pdf-foot">
+        <span><b>Version:</b> {version}</span>
+        <span><b>Generated:</b> {generatedDate}</span>
+        <span><b>Source:</b> {domain}</span>
+      </div>
+    </div>
+  );
+}
+
+function PdfTOC({ domain }: { domain: string }) {
+  return (
+    <div className="pdf-page">
+      <h2 className="pdf-cover-title">Contents</h2>
+      <p className="pdf-cover-sub">{TOTAL_PDF_PAGES} pages</p>
+      <div className="pdf-cover-rule" />
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {TOC.map(([n, t, p]) => (
+          <div key={n} className="pdf-toc-row">
+            <span><b>{n}</b>  {t}</span>
+            <span>{p}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ flex: 1 }} />
+      <div className="pdf-foot">
+        <span><b>{domain}</b></span>
+        <span>style guide · page 02</span>
+      </div>
     </div>
   );
 }
 
 export default function ResultsPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#191919] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[#407EC9] animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <main
+          className="ss-main"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '60vh',
+          }}
+        >
+          <Loader2 className="spin" size={32} color="var(--brand)" />
+        </main>
+      }
+    >
       <ResultsContent />
     </Suspense>
   );
