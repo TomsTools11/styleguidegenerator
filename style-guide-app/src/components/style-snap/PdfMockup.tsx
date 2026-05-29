@@ -1,5 +1,5 @@
 // StyleSnap — animated style-guide page preview.
-// 3 stacked rotated pages; the front straightens on hover.
+// 3 pages stacked in a slightly off-center pile; they fan out a touch on hover.
 // Floating badge bottom-right shows "19 pages · ready in 47s".
 
 export function PdfMockup() {
@@ -7,7 +7,7 @@ export function PdfMockup() {
     <div className="pdf-mock">
       <div className="pdf-page pdf-page-3" />
       <div className="pdf-page pdf-page-2" />
-      <div className="pdf-page">
+      <div className="pdf-page pdf-page-front">
         <div className="pdf-content">
           <div>
             <div className="pdf-cover-domain">stripe.com</div>

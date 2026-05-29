@@ -426,36 +426,44 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ===== PDF mockup ===== */
-.pdf-mock { position: relative; perspective: 2000px; }
+.pdf-mock {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin-inline: auto;
+  aspect-ratio: 8.5 / 11;
+  perspective: 2000px;
+}
 /* The PDF mockup is a "white paper" surface that should keep light-mode
    colors regardless of the page theme — so the printable-PDF metaphor reads
-   correctly on dark mode. Local --paper-* vars cascade to all .pdf-* children. */
-.pdf-page {
+   correctly on dark mode. Local --paper-* vars cascade to all .pdf-* children.
+   All three pages are scoped under .pdf-mock and absolutely stacked so they
+   form a pile — this also keeps the results-viewer's global .pdf-page rules
+   (which set position/width) from leaking in and breaking the stack. */
+.pdf-mock .pdf-page {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  padding: 0;
   background: #fff;
   border: 1px solid #dfe9f1;
   border-radius: 8px;
-  box-shadow: var(--shadow-md), 0 24px 48px -12px rgba(9,9,11,.12);
-  aspect-ratio: 8.5 / 11;
+  box-shadow: var(--shadow-md), 0 24px 48px -12px rgba(9,9,11,.18);
   overflow: hidden;
-  position: relative;
-  transform: rotate(-1.5deg);
-  transition: transform 600ms var(--ease-out);
+  transform-origin: 50% 60%;
+  transition: transform 520ms var(--ease-out), box-shadow 520ms var(--ease-out);
   --paper-text-primary:   #09090b;
   --paper-text-secondary: #52525b;
   --paper-text-tertiary:  #a1a1aa;
   --paper-border:         #dfe9f1;
 }
-.pdf-mock:hover .pdf-page { transform: rotate(0deg); }
-.pdf-page-2 {
-  position: absolute; inset: 0;
-  transform: rotate(2.5deg) translate(20px, 14px);
-  z-index: -1; opacity: 0.6;
-}
-.pdf-page-3 {
-  position: absolute; inset: 0;
-  transform: rotate(-3.5deg) translate(-18px, 8px);
-  z-index: -2; opacity: 0.4;
-}
+/* Pile — stacked, each slightly off-center */
+.pdf-mock .pdf-page-front { z-index: 3; transform: rotate(-1.5deg); }
+.pdf-mock .pdf-page-2     { z-index: 2; transform: rotate(3deg)    translate(9px, 5px); }
+.pdf-mock .pdf-page-3     { z-index: 1; transform: rotate(-4.5deg) translate(-11px, 9px); }
+/* Hover — fan out very slightly */
+.pdf-mock:hover .pdf-page-front { transform: rotate(-0.5deg) translateY(-5px); }
+.pdf-mock:hover .pdf-page-2     { transform: rotate(6deg)    translate(22px, 6px); }
+.pdf-mock:hover .pdf-page-3     { transform: rotate(-8.5deg) translate(-24px, 6px); }
 .pdf-content { padding: 28px 26px; height: 100%; display: flex; flex-direction: column; gap: 10px; }
 .pdf-cover-domain { font-family: var(--font-mono); font-size: 10px; color: var(--paper-text-tertiary); }
 .pdf-cover-title { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; line-height: 1.1; color: var(--brand-accent); }
@@ -856,8 +864,10 @@ a { color: inherit; text-decoration: none; }
 .pdf-page {
   width: 320px; aspect-ratio: 8.5 / 11;
   background: #fff; color: #09090b;
+  border: 1px solid #dfe9f1;
   border-radius: 4px;
   box-shadow: 0 24px 60px -16px rgba(0,0,0,0.6), 0 6px 18px -6px rgba(0,0,0,0.5);
+  overflow: hidden;
   padding: 28px 26px;
   position: relative;
   display: flex; flex-direction: column;
