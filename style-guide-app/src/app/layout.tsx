@@ -21,7 +21,13 @@ export const metadata: Metadata = {
       'Snap any website. Get a printable style guide. No accounts, no subscriptions.',
     type: 'website',
   },
-  icons: { icon: '/brand/drop-icon.svg' },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/brand/ss-favicon.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: '/brand/ss-favicon-180.png',
+  },
 };
 
 export default function RootLayout({
