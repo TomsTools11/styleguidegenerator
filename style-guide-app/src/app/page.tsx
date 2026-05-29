@@ -206,7 +206,6 @@ export default function Home() {
 
           <form className="url-form-wrap" onSubmit={submit} noValidate>
             <div className="url-form">
-              <span className="url-prefix">https://</span>
               <input
                 className="url-input"
                 type="text"
