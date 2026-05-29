@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { NavLogo } from '@/components/style-snap/NavLogo';
 import { useEffect, useMemo, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -179,14 +179,7 @@ function ResultsContent() {
         <header className="ss-header">
           <div className="ss-header-inner">
             <a href="/" className="ss-brand-link" aria-label="StyleSnap">
-              <Image
-                src="/brand/stylesnap-logo-nav.png"
-                alt="StyleSnap"
-                width={1159}
-                height={307}
-                className="ss-brand-logo"
-                priority
-              />
+              <NavLogo />
             </a>
           </div>
         </header>
@@ -231,14 +224,7 @@ function ResultsContent() {
       <header className="ss-header">
         <div className="ss-header-inner">
           <a href="/" className="ss-brand-link" aria-label="StyleSnap">
-            <Image
-              src="/brand/stylesnap-logo-nav.png"
-              alt="StyleSnap"
-              width={1159}
-              height={307}
-              className="ss-brand-logo"
-              priority
-            />
+            <NavLogo />
           </a>
           <a href="/" className="ss-link-btn">
             <RefreshCw size={14} />

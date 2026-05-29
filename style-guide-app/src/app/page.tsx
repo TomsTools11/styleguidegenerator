@@ -15,6 +15,7 @@ import {
   IcBolt,
 } from '@/components/style-snap/icons';
 import { PdfMockup } from '@/components/style-snap/PdfMockup';
+import { NavLogo } from '@/components/style-snap/NavLogo';
 
 const FEATURES: { icon: ReactNode; title: string; body: string; tag: string }[] = [
   {
@@ -167,20 +168,13 @@ export default function Home() {
       <header className="ss-header">
         <div className="ss-header-inner">
           <a href="#" className="ss-brand-link" aria-label="StyleSnap">
-            <Image
-              src="/brand/stylesnap-logo-nav.png"
-              alt="StyleSnap"
-              width={1159}
-              height={307}
-              className="ss-brand-logo"
-              priority
-            />
+            <NavLogo />
           </a>
           <nav className="ss-nav">
             <a className="nav-link" href="#features">Features</a>
             <a className="nav-link" href="#how">How it works</a>
             <a className="nav-link" href="#faq">FAQ</a>
-            <span className="ss-meta" style={{ color: 'rgb(197, 223, 246)' }}>
+            <span className="ss-meta" style={{ color: 'var(--text-secondary)' }}>
               v1.0<span className="dot">·</span>by s3 labs
             </span>
           </nav>
@@ -394,7 +388,15 @@ export default function Home() {
                   alt="StyleSnap"
                   width={1822}
                   height={1009}
-                  className="ss-brand-logo"
+                  className="ss-brand-logo is-dark"
+                  style={{ objectFit: 'contain', height: 110, width: 140 }}
+                />
+                <Image
+                  src="/brand/stylesnap-logo-footer-light.png"
+                  alt="StyleSnap"
+                  width={1822}
+                  height={1009}
+                  className="ss-brand-logo is-light"
                   style={{ objectFit: 'contain', height: 110, width: 140 }}
                 />
               </a>
@@ -426,9 +428,9 @@ export default function Home() {
             <span>
               Made with{' '}
               <span aria-label="love" style={{ color: 'var(--mark-red)' }}>❤</span>{' '}
-              <span style={{ color: '#71717a' }}>
+              <span style={{ color: 'var(--text-tertiary)' }}>
                 by Tom &amp; Alex from{' '}
-                <span style={{ color: '#2e9df0' }}>S3 Labs</span>
+                <span style={{ color: 'var(--brand)' }}>S3 Labs</span>
               </span>
             </span>
           </div>
