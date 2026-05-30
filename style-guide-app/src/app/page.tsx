@@ -91,7 +91,7 @@ const PDF_INCLUDES = [
 const FAQS: { q: string; a: ReactNode }[] = [
   {
     q: 'Is it really free?',
-    a: 'Yes. No card, no account, no paywall. If StyleSnap saves you an afternoon, tips at s3labs.com keep it running — but nothing is gated.',
+    a: 'Yes, StyleSnap allows users to create up to 3 style guides per month. No purchase required.',
   },
   {
     q: 'What sites can I analyze?',
@@ -99,28 +99,28 @@ const FAQS: { q: string; a: ReactNode }[] = [
   },
   {
     q: 'How long does generation take?',
-    a: 'Most runs finish in under 60 seconds. Average is 47 seconds. Heavy SPAs can push toward the cap.',
+    a: 'Most runs finish in less than 1 minute, but more complex sites could take longer.',
   },
   {
     q: 'Can I edit the style guide afterwards?',
-    a: "The PDF is final. We're working on an editable HTML output and a token export (JSON, CSS variables, Tailwind theme) — both planned for v1.1.",
-  },
-  {
-    q: 'Do you store the analyzed site?',
-    a: "We cache the rendered output for 24 hours so re-downloads are instant, then it's purged. The PDF stays at its slug forever.",
-  },
-  {
-    q: "What's the URL pattern for guides?",
     a: (
       <>
-        Each guide gets a 6-character Base62 slug — e.g.{' '}
-        <code>stylesnap.sh/r/9kR2vH</code>. Not indexed, not listed. Shareable means shareable on purpose.
+        For now, the PDF that’s generated is final. We may add capabilities like this to our Pro plan{' '}
+        <em>($4 one time purchase).</em>
       </>
     ),
   },
   {
+    q: 'Do you store the analyzed site?',
+    a: 'We cache the rendered output for 24 hours so re-downloads are instant, then it’s purged. The PDF stays at its slug forever.',
+  },
+  {
+    q: 'What’s the URL pattern for guides?',
+    a: 'Each guide gets a 6-character Base62 slug — e.g. stylesnap.sh/r/9kR2vH. Not indexed, not listed. Shareable means shareable on purpose.',
+  },
+  {
     q: 'Who made this?',
-    a: 'A tiny utility from S3 Labs. Same studio that ships DropDoc. One page, one input, one output.',
+    a: 'S3 Labs, a small software studio that specializes in extremely simple and effective single-purpose tools. All S3 products are either free or require a small 1-time purchase. No subscriptions. Ever.',
   },
 ];
 
