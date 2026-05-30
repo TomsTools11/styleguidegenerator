@@ -251,6 +251,17 @@ export default function Home() {
             {error && <p className="url-error">{error}</p>}
           </form>
 
+          {/* Explore other apps */}
+          <a
+            className="hero-explore"
+            href="https://s3labs.tech"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Explore Our Other Apps
+            <span className="hero-explore-arrow" aria-hidden>→</span>
+          </a>
+
           {/* Stats */}
           <div className="hero-stats">
             <div className="stat">
@@ -417,7 +428,7 @@ export default function Home() {
             <div className="footer-col">
               <h4>studio</h4>
               <ul>
-                <li><a href="https://s3labs.tech">S3 Labs</a></li>
+                <li><a href="https://s3labs.tech" style={{ color: 'var(--brand)' }}>S3 Labs</a></li>
                 <li><a href="https://s3labs.tech">All products</a></li>
                 <li><a href="https://dropdoc.sh">DropDoc</a></li>
               </ul>
@@ -430,7 +441,14 @@ export default function Home() {
               <span aria-label="love" style={{ color: 'var(--mark-red)' }}>❤</span>{' '}
               <span style={{ color: 'var(--text-tertiary)' }}>
                 by Tom &amp; Alex from{' '}
-                <span style={{ color: 'var(--brand)' }}>S3 Labs</span>
+                <a
+                  href="https://s3labs.tech"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-s3-link"
+                >
+                  S3 Labs
+                </a>
               </span>
             </span>
           </div>
